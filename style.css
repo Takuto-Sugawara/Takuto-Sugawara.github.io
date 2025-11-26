@@ -1,1 +1,180 @@
+body {
+  background-color: #ffffff;
+  color: #000000;
+  font-family: "MS Pゴシック", "MS PGothic", Osaka, sans-serif;
+  font-size: 16px;
+  margin: 0;
+  padding: 0;
+  line-height: 1.4;
+}
 
+main {
+  display: table;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.sidebar {
+  display: table-cell;
+  width: 180px;
+  vertical-align: top;
+  padding: 10px;
+  background-color: #ffffff;
+}
+
+.sidebar ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar li {
+  margin-bottom: 8px;
+}
+
+.sidebar a {
+  color: #0000ff;
+  text-decoration: underline;
+  font-size: 14px;
+}
+
+.sidebar a:visited {
+  color: #551a8b;
+}
+
+.sidebar a:hover {
+  color: #ff0000;
+}
+
+.main-contents {
+  display: table-cell;
+  vertical-align: top;
+  padding: 10px;
+  background-color: #ffffff;
+}
+
+.main-contents-top {
+  margin-bottom: 20px;
+}
+
+h1 {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 0 0 20px 0;
+  padding: 0;
+  color: #000000;
+}
+
+h2 {
+  font-size: 18px;
+  font-weight: bold;
+  margin: 20px 0 10px 0;
+  padding: 0;
+  color: #000000;
+}
+
+#profile-image {
+  margin: 20px 0;
+}
+
+#profile-image img {
+  max-width: 300px;
+  height: auto;
+  border: none;
+}
+
+.profile-summary {
+  margin: 20px 0;
+  line-height: 1.6;
+}
+
+.profile-summary p {
+  margin: 5px 0;
+  padding: 0;
+}
+
+.email-address-image img {
+  max-width: 250px;
+  height: auto;
+  border: none;
+  margin: 5px 0;
+}
+
+.latest-information {
+  margin: 30px 0;
+}
+
+.latest-information p {
+  margin: 10px 0;
+}
+
+.rights {
+  margin: 30px 0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.rights b {
+  font-weight: bold;
+}
+
+.footer {
+  margin: 20px 0;
+  padding-top: 20px;
+  border-top: 1px solid #000000;
+}
+
+.footer a {
+  color: #0000ff;
+  text-decoration: underline;
+}
+
+.footer a:visited {
+  color: #551a8b;
+}
+
+.footer a:hover {
+  color: #ff0000;
+}
+
+a {
+  color: #0000ff;
+  text-decoration: underline;
+}
+
+a:visited {
+  color: #551a8b;
+}
+
+a:hover {
+  color: #ff0000;
+}
+
+/* レスポンシブ対応（スマホでも見やすく） */
+@media screen and (max-width: 768px) {
+  main {
+    display: block;
+  }
+
+  .sidebar {
+    display: block;
+    width: 100%;
+    border-bottom: 1px solid #000000;
+    padding: 10px;
+  }
+
+  .sidebar ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .main-contents {
+    display: block;
+    width: 100%;
+  }
+
+  #profile-image img {
+    max-width: 100%;
+  }
+}
