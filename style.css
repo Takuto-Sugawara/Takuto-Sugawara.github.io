@@ -18,7 +18,7 @@ body::before {
   transform: translate(-50%, -50%);
   font-size: 120px;
   font-weight: bold;
-  color: rgba(200, 200, 200, 0.3);
+  color: rgba(150, 200, 100, 0.4);
   white-space: nowrap;
   z-index: 0;
   pointer-events: none;
