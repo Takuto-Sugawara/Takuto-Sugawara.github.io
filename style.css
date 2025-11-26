@@ -1,17 +1,37 @@
 body {
-  background-color: #ffffff;
+  background-color: #e8e8e8;
   color: #000000;
   font-family: "MS Pゴシック", "MS PGothic", Osaka, sans-serif;
   font-size: 16px;
   margin: 0;
   padding: 0;
   line-height: 1.4;
+  position: relative;
+}
+
+/* 背景のローマ字 */
+body::before {
+  content: "TAKUTO SUGAWARA";
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 120px;
+  font-weight: bold;
+  color: rgba(200, 200, 200, 0.3);
+  white-space: nowrap;
+  z-index: 0;
+  pointer-events: none;
+  font-family: Arial, sans-serif;
+  letter-spacing: 20px;
 }
 
 main {
   display: table;
   width: 100%;
   border-collapse: collapse;
+  position: relative;
+  z-index: 1;
 }
 
 .sidebar {
