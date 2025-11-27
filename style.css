@@ -1,5 +1,5 @@
 body {
-  background-color: #e8e8e8;
+  background-color: #ffffff;
   color: #000000;
   font-family: "MS Pゴシック", "MS PGothic", Osaka, sans-serif;
   font-size: 16px;
@@ -11,19 +11,23 @@ body {
 
 /* 背景のローマ字 */
 body::before {
-  content: "TAKUTO SUGAWARA";
+  content: "Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara Takuto Sugawara ";
   position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 120px;
-  font-weight: bold;
-  color: rgba(150, 200, 100, 0.4);
-  white-space: nowrap;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  font-size: 14px;
+  font-weight: normal;
+  color: #008000;
+  word-wrap: break-word;
   z-index: 0;
   pointer-events: none;
-  font-family: Arial, sans-serif;
-  letter-spacing: 20px;
+  font-family: "MS Pゴシック", "MS PGothic", Osaka, sans-serif;
+  opacity: 0.15;
+  line-height: 1.8;
+  padding: 10px;
+  overflow: hidden;
 }
 
 main {
@@ -53,17 +57,7 @@ main {
 }
 
 .sidebar a {
-  color: #0000ff;
-  text-decoration: underline;
   font-size: 14px;
-}
-
-.sidebar a:visited {
-  color: #551a8b;
-}
-
-.sidebar a:hover {
-  color: #ff0000;
 }
 
 .main-contents {
@@ -142,19 +136,6 @@ h2 {
   margin: 20px 0;
   padding-top: 20px;
   border-top: 1px solid #000000;
-}
-
-.footer a {
-  color: #0000ff;
-  text-decoration: underline;
-}
-
-.footer a:visited {
-  color: #551a8b;
-}
-
-.footer a:hover {
-  color: #ff0000;
 }
 
 a {
