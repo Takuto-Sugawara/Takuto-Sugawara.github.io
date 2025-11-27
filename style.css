@@ -39,7 +39,7 @@ main {
   width: 180px;
   vertical-align: top;
   padding: 10px;
-  background-color: #ffffff;
+  background-color: transparent;
 }
 
 .sidebar ul {
@@ -70,7 +70,7 @@ main {
   display: table-cell;
   vertical-align: top;
   padding: 10px;
-  background-color: #ffffff;
+  background-color: transparent;
 }
 
 .main-contents-top {
