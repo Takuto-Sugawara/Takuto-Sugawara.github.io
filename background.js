@@ -18,7 +18,7 @@
     opacity: 0.25;
     font-family: "MS Pゴシック", "MS PGothic", Osaka, sans-serif;
     word-spacing: 10px;
-    transform: rotate(15deg);
+    transform: rotate(-15deg);
     transform-origin: center center;
   `;
 
