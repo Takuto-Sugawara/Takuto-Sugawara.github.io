@@ -17,14 +17,14 @@
     color: #00aa00;
     opacity: 0.25;
     font-family: "Times New Roman", Times, serif;
-    word-spacing: 15px;
+    word-spacing: normal;
     transform: rotate(-15deg);
     transform-origin: center center;
   `;
 
   // 画面サイズに応じて必要な繰り返し回数を計算
   function fillBackground() {
-    const text = 'Takuto Sugawara ';
+    const text = 'Takuto Sugawara   '; // 名前の繰り返し間に余分なスペースを追加
     const windowHeight = window.innerHeight;
     const windowWidth = window.innerWidth;
 
