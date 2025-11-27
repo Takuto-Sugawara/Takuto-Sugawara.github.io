@@ -13,10 +13,10 @@
     pointer-events: none;
     overflow: hidden;
     line-height: 1.5;
-    font-size: 20px;
+    font-size: 40px;
     color: #00aa00;
     opacity: 0.25;
-    font-family: "MS Pゴシック", "MS PGothic", Osaka, sans-serif;
+    font-family: "Times New Roman", Times, serif;
     word-spacing: 10px;
     transform: rotate(-15deg);
     transform-origin: center center;
@@ -30,8 +30,8 @@
 
     // 1行あたりの文字数を計算（概算）
     // 回転を考慮して200%のサイズで計算
-    const charsPerLine = Math.ceil(windowWidth * 2 / 12); // 20pxフォントで約12px/文字
-    const lines = Math.ceil(windowHeight * 2 / 30); // 行間30px
+    const charsPerLine = Math.ceil(windowWidth * 2 / 24); // 40pxフォントで約24px/文字
+    const lines = Math.ceil(windowHeight * 2 / 60); // 行間60px
 
     // 必要なテキスト量を計算
     const totalChars = charsPerLine * lines * 2; // 余裕をもって2倍
