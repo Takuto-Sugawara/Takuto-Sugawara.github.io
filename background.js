@@ -5,10 +5,10 @@
   bgDiv.id = 'background-text';
   bgDiv.style.cssText = `
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
     z-index: 0;
     pointer-events: none;
     overflow: hidden;
@@ -29,8 +29,9 @@
     const windowWidth = window.innerWidth;
 
     // 1行あたりの文字数を計算（概算）
-    const charsPerLine = Math.ceil(windowWidth / 12); // 20pxフォントで約12px/文字
-    const lines = Math.ceil(windowHeight / 30); // 行間30px
+    // 回転を考慮して200%のサイズで計算
+    const charsPerLine = Math.ceil(windowWidth * 2 / 12); // 20pxフォントで約12px/文字
+    const lines = Math.ceil(windowHeight * 2 / 30); // 行間30px
 
     // 必要なテキスト量を計算
     const totalChars = charsPerLine * lines * 2; // 余裕をもって2倍
