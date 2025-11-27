@@ -17,7 +17,7 @@
     color: #00aa00;
     opacity: 0.25;
     font-family: "Times New Roman", Times, serif;
-    word-spacing: 10px;
+    word-spacing: 15px;
     transform: rotate(-15deg);
     transform-origin: center center;
   `;
