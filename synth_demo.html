@@ -1,0 +1,1696 @@
+<title>Timbre Plane</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600&family=IBM+Plex+Sans+JP:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: 左に「出発点と操作対象」、右に「平面」を置く2カラムの操作盤。狭い画面では縦に積む */
+:root {
+  --bg: #ECEFF2;
+  --panel: #F8F9FA;
+  --ink: #17202A;
+  --muted: #5A6573;
+  --line: #D2D8DF;
+  --accent: #B35C00;
+  --accent-strong: #9A4E00;
+  --accent-soft: #F6E4CC;
+  --on-accent: #FFFFFF;
+  --plane-bg: #FCFCFD;
+  --plane-grid: #E3E7EB;
+  --plane-axis: #C2CAD3;
+  --focus: #2F6FDE;
+  --key-white: #FFFFFF;
+  --key-black: #222A33;
+  --key-black-ink: #C9D1DA;
+  --font-display: "Chakra Petch", "IBM Plex Sans JP", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans JP", "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11151A; --panel: #181E25; --ink: #E5E9EE; --muted: #97A2AF; --line: #2A323C;
+    --accent: #F0A040; --accent-strong: #F7B865; --accent-soft: #3B2B16; --on-accent: #1A1206;
+    --plane-bg: #0D1115; --plane-grid: #1E252D; --plane-axis: #35404B; --focus: #7AA7FF;
+    --key-white: #26303A; --key-black: #07090C; --key-black-ink: #8F9AA6;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11151A; --panel: #181E25; --ink: #E5E9EE; --muted: #97A2AF; --line: #2A323C;
+  --accent: #F0A040; --accent-strong: #F7B865; --accent-soft: #3B2B16; --on-accent: #1A1206;
+  --plane-bg: #0D1115; --plane-grid: #1E252D; --plane-axis: #35404B; --focus: #7AA7FF;
+    --key-white: #26303A; --key-black: #07090C; --key-black-ink: #8F9AA6;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.6; }
+.app { max-width: 1180px; margin: 0 auto; padding-inline: clamp(16px, 3vw, 32px); padding-block: 28px 56px; display: grid; gap: 24px; }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+header { display: flex; flex-wrap: wrap; gap: 12px 32px; align-items: flex-end; justify-content: space-between; }
+.brand { display: grid; gap: 2px; }
+h1 { font-family: var(--font-display); font-weight: 600; font-size: 30px; letter-spacing: 0.02em; margin: 0; line-height: 1.1; text-wrap: balance; }
+.badge { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; border: 1px solid var(--accent); color: var(--accent-strong); border-radius: 4px; padding: 1px 6px; vertical-align: 6px; margin-left: 8px; }
+.lede { margin: 0; color: var(--muted); }
+.engine-note { margin: 0; max-width: 44ch; font-size: 12.5px; color: var(--muted); }
+
+.layout { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 880px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+.col { display: grid; gap: 16px; min-width: 0; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 14px; min-width: 0; }
+.step-head { display: flex; gap: 10px; align-items: baseline; }
+.step-no { font-family: var(--font-mono); font-size: 12px; color: var(--accent-strong); letter-spacing: 0.06em; }
+h2 { font-size: 15px; font-weight: 600; margin: 0; }
+
+.search { display: flex; gap: 8px; }
+.search input { flex: 1; min-width: 0; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+.btn { border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 8px 14px; cursor: pointer; white-space: nowrap; }
+.btn:hover { border-color: var(--muted); }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
+.btn-primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
+.examples { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: 12.5px; border: 1px dashed var(--line); background: transparent; border-radius: 999px; padding: 3px 10px; cursor: pointer; color: var(--muted); }
+.chip:hover { color: var(--ink); border-color: var(--muted); }
+
+.result { border-top: 1px solid var(--line); padding-top: 14px; display: grid; gap: 8px; }
+.result-name { font-family: var(--font-display); font-size: 24px; font-weight: 600; line-height: 1.2; }
+.result-meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12.5px; color: var(--muted); }
+.cat { background: var(--accent-soft); color: var(--ink); border-radius: 4px; padding: 1px 8px; font-weight: 500; }
+.kw { font-family: var(--font-mono); font-size: 11.5px; border: 1px solid var(--line); border-radius: 4px; padding: 0 6px; color: var(--ink); }
+.msg { font-size: 12.5px; color: var(--muted); margin: 0; }
+.msg.warn { color: var(--accent-strong); }
+.alt { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12.5px; color: var(--muted); }
+.manual { display: flex; gap: 8px; align-items: center; font-size: 12.5px; color: var(--muted); }
+.manual select { flex: 1; min-width: 0; padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); }
+
+.groups { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.group { text-align: left; padding: 10px 12px; border: 1px solid var(--line); background: var(--bg); border-radius: 8px; cursor: pointer; display: grid; gap: 1px; }
+.group strong { font-weight: 600; font-size: 14px; }
+.group span { font-size: 12px; color: var(--muted); }
+.group[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+
+.mode-row { display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 12px; }
+.mode-label { font-size: 12px; color: var(--muted); }
+.modes { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.mode { flex: 1; padding: 7px 10px; background: var(--bg); border: 0; cursor: pointer; font-size: 13px; }
+.mode + .mode { border-left: 1px solid var(--line); }
+.mode[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); font-weight: 600; }
+.axis-detail { font-family: var(--font-mono); font-size: 11.5px; overflow-wrap: anywhere; border-left: 2px solid var(--accent); padding-left: 10px; }
+.params { display: grid; gap: 12px; }
+.pgroup { display: grid; gap: 5px; }
+.pgroup-title { font-size: 11px; letter-spacing: 0.08em; color: var(--muted); }
+.prow { display: grid; grid-template-columns: 8.8em minmax(0, 1fr) 5.4em; gap: 10px; align-items: center; font-size: 12.5px; }
+.prow .name { display: flex; gap: 5px; align-items: center; white-space: nowrap; }
+.axis-tag { font-family: var(--font-mono); font-size: 10px; background: var(--accent); color: var(--on-accent); border-radius: 3px; padding: 0 4px; line-height: 1.5; }
+.bar { height: 6px; background: var(--plane-grid); border-radius: 3px; position: relative; overflow: hidden; }
+.bar > span { position: absolute; inset: 0 auto 0 0; background: var(--plane-axis); border-radius: 3px; }
+.prow.is-axis .bar > span { background: var(--accent); }
+.prow .val { font-family: var(--font-mono); font-size: 11.5px; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.prow.is-choice .bar { visibility: hidden; }
+
+.transport { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
+.tempo { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.toggle { display: flex; gap: 6px; align-items: center; font-size: 13px; color: var(--muted); cursor: pointer; }
+.toggle input { accent-color: var(--accent); }
+.steps { display: flex; gap: 3px; flex-wrap: wrap; margin-left: auto; }
+.steps i { width: 7px; height: 7px; border-radius: 2px; background: var(--plane-grid); }
+.steps i.beat { background: var(--plane-axis); }
+.steps i.on { background: var(--accent); }
+
+.plane-wrap { display: grid; grid-template-columns: 5.6em minmax(0, 1fr); grid-template-rows: auto auto; gap: 8px 10px; }
+.y-axis { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; text-align: right; font-size: 12px; color: var(--muted); padding-block: 2px; min-width: 0; }
+.y-axis .axis-name { color: var(--ink); font-weight: 600; }
+.plane-box { position: relative; aspect-ratio: 4 / 3; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--plane-bg); touch-action: none; max-width: 100%; }
+@media (max-width: 560px) { .plane-box { aspect-ratio: 1 / 1; } .plane-wrap { grid-template-columns: 4.6em minmax(0, 1fr); } }
+#plane { display: block; width: 100%; height: 100%; cursor: crosshair; }
+.readout { position: absolute; left: 10px; top: 8px; font-family: var(--font-mono); font-size: 11.5px; color: var(--muted); pointer-events: none; display: grid; gap: 0; font-variant-numeric: tabular-nums; }
+.readout b { color: var(--ink); font-weight: 500; }
+.x-axis { grid-column: 2; display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--muted); }
+.x-axis .axis-name { color: var(--ink); font-weight: 600; }
+.hint { margin: 0; font-size: 12.5px; color: var(--muted); }
+
+.kbd-wrap { display: grid; gap: 8px; }
+.kbd-head { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+.kbd-title { font-size: 13px; font-weight: 600; }
+.oct { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+.btn-small { padding: 2px 10px; }
+.kbd { position: relative; height: 118px; display: flex; user-select: none; -webkit-user-select: none; touch-action: none; }
+.key-w { flex: 1; min-width: 0; background: var(--key-white); border: 1px solid var(--line); border-radius: 0 0 6px 6px; margin-right: -1px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 1px; padding-bottom: 6px; font-family: var(--font-mono); font-size: 10px; color: var(--muted); cursor: pointer; }
+.key-w b { font-weight: 500; color: var(--ink); }
+.key-b { position: absolute; top: 0; height: 60%; background: var(--key-black); border-radius: 0 0 4px 4px; z-index: 2; cursor: pointer; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 5px; font-family: var(--font-mono); font-size: 9.5px; color: var(--key-black-ink); }
+.key-w.down { background: var(--accent-soft); }
+.key-b.down { background: var(--accent); color: var(--on-accent); }
+.session { display: grid; gap: 8px; border-top: 1px solid var(--line); padding-top: 14px; }
+.session-bar { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; }
+.session-info { font-family: var(--font-mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.session-actions { display: flex; gap: 8px; }
+.rating { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; background: var(--accent-soft); border-radius: 8px; padding: 10px 12px; }
+.rating-q { font-size: 13px; font-weight: 600; }
+.stars { display: flex; gap: 6px; }
+.star { min-width: 44px; border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 4px 6px; cursor: pointer; display: grid; justify-items: center; font-family: var(--font-mono); font-size: 15px; line-height: 1.2; }
+.star small { font-family: var(--font-body); font-size: 10px; color: var(--muted); }
+.star:hover { border-color: var(--accent); }
+h3.sub { font-size: 12px; font-weight: 600; color: var(--muted); margin: 4px 0 0; letter-spacing: 0.04em; }
+.outcome { font-family: var(--font-body); font-weight: 600; }
+.scope { width: 100%; height: 48px; display: block; border-radius: 6px; background: var(--plane-bg); border: 1px solid var(--line); }
+
+.log-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+.log-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 12.5px; }
+.log-list li { display: grid; gap: 1px; padding-left: 10px; border-left: 2px solid var(--line); }
+.log-list .when { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+.log-list .chg { font-family: var(--font-mono); font-size: 11.5px; overflow-wrap: anywhere; }
+.log-empty { font-size: 12.5px; color: var(--muted); margin: 0; }
+#log-json { width: 100%; min-height: 140px; font-family: var(--font-mono); font-size: 11px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); padding: 8px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="app">
+  <header>
+    <div class="brand">
+      <h1>Timbre Plane<span class="badge">PoC</span></h1>
+      <p class="lede">テキストで出発点を決めて、平面をなぞって音色を詰める</p>
+    </div>
+    <p class="engine-note">音はブラウザ内の簡易シンセで鳴らしています。本番ではVital / Surge XTに差し替える前提で、プリセット・パラメータ群・再生パターンはページ内のJSONに分けてあります。</p>
+  </header>
+
+  <div class="layout">
+    <div class="col">
+      <section class="panel" aria-labelledby="h-step1">
+        <div class="step-head"><span class="step-no">STEP 1</span><h2 id="h-step1">テキストで出発点を決める</h2></div>
+        <form class="search" id="search-form">
+          <label for="prompt" hidden>どんな音か</label>
+          <input id="prompt" type="text" autocomplete="off" placeholder="例：dark techno bass">
+          <button class="btn btn-primary" type="submit">音を探す</button>
+        </form>
+        <div class="examples" id="examples" aria-label="入力例"></div>
+        <div class="result">
+          <div class="result-name" id="result-name"></div>
+          <div class="result-meta" id="result-meta"></div>
+          <p class="msg" id="result-msg"></p>
+          <div class="alt" id="result-alt"></div>
+          <div class="manual">
+            <label for="preset-select">手動で選ぶ</label>
+            <select id="preset-select"></select>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-step2">
+        <div class="step-head"><span class="step-no">STEP 2</span><h2 id="h-step2">触るパラメータ群を選ぶ</h2></div>
+        <div class="groups" id="groups"></div>
+        <div class="mode-row">
+          <span class="mode-label" id="mode-label">軸の作り方</span>
+          <div class="modes" role="group" aria-labelledby="mode-label">
+            <button type="button" class="mode" data-mode="single">単一パラメータ</button>
+            <button type="button" class="mode" data-mode="combo">組み合わせ（射影）</button>
+          </div>
+          <p class="msg" id="mode-desc"></p>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-params">
+        <h2 id="h-params">現在のパラメータ</h2>
+        <div class="params" id="params"></div>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="panel" aria-labelledby="h-step3">
+        <div class="step-head"><span class="step-no">STEP 3</span><h2 id="h-step3">平面をなぞって詰める</h2></div>
+        <div class="transport">
+          <button class="btn btn-primary" id="play" type="button">▶ ループ再生</button>
+          <span class="tempo">124 BPM</span>
+          <label class="toggle"><input type="checkbox" id="kick"> キックを重ねる</label>
+          <div class="steps" id="steps" aria-hidden="true"></div>
+        </div>
+        <div class="plane-wrap">
+          <div class="y-axis" aria-hidden="true">
+            <span id="y-high"></span>
+            <span class="axis-name" id="y-name"></span>
+            <span id="y-low"></span>
+          </div>
+          <div class="plane-box">
+            <canvas id="plane" tabindex="0" aria-label="音色の平面。ドラッグ、または矢印キーで操作"></canvas>
+            <div class="readout" id="readout"></div>
+          </div>
+          <div class="x-axis" aria-hidden="true">
+            <span id="x-low"></span>
+            <span class="axis-name" id="x-name"></span>
+            <span id="x-high"></span>
+          </div>
+        </div>
+        <p class="hint axis-detail" id="axis-detail" hidden></p>
+        <div class="kbd-wrap">
+          <div class="kbd-head">
+            <span class="kbd-title">鍵盤で弾く</span>
+            <span class="tempo">PCキー A〜; で演奏／Z・X でオクターブ</span>
+            <div class="oct">
+              <button class="btn btn-small" id="oct-down" type="button" aria-label="1オクターブ下げる">−</button>
+              <span class="tempo" id="oct-label"></span>
+              <button class="btn btn-small" id="oct-up" type="button" aria-label="1オクターブ上げる">＋</button>
+            </div>
+          </div>
+          <div class="kbd" id="kbd" role="group" aria-label="鍵盤"></div>
+        </div>
+        <p class="hint">鍵盤を押さえたまま（またはループ再生中に）平面をなぞると、その場で音色が変わります。PCキーで弾きながらマウスで平面を動かすのがおすすめです。</p>
+        <canvas class="scope" id="scope" aria-hidden="true"></canvas>
+        <div class="session">
+          <div class="session-bar">
+            <span class="session-info" id="session-info"></span>
+            <div class="session-actions">
+              <button class="btn" id="abandon" type="button">やり直す</button>
+              <button class="btn btn-primary" id="decide" type="button">この音で決定</button>
+            </div>
+          </div>
+          <div class="rating" id="rating" hidden>
+            <span class="rating-q" id="rating-q">この音にどれくらい満足していますか？</span>
+            <div class="stars" role="group" aria-labelledby="rating-q">
+              <button type="button" class="star" data-r="1">1<small>不満</small></button>
+              <button type="button" class="star" data-r="2">2</button>
+              <button type="button" class="star" data-r="3">3<small>ふつう</small></button>
+              <button type="button" class="star" data-r="4">4</button>
+              <button type="button" class="star" data-r="5">5<small>大満足</small></button>
+            </div>
+            <button class="btn btn-small" id="rating-skip" type="button">答えない</button>
+          </div>
+          <p class="msg" id="session-msg"></p>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-log">
+        <div class="log-head">
+          <h2 id="h-log">操作ログ <span class="tempo" id="log-count"></span></h2>
+          <button class="btn" id="copy-log" type="button">JSONをコピー</button>
+        </div>
+        <p class="hint">音作りの1回分をセッションとして、決定・やり直しの結果、満足度、触った群の順番を記録します。セッションの中では、平面を操作するたびに、どのパラメータをどれだけ動かしたかを記録します。将来の個人化の学習データになる部分です。</p>
+        <h3 class="sub">セッション</h3>
+        <ul class="log-list" id="session-list"></ul>
+        <p class="log-empty" id="session-empty">まだ決定・やり直しがありません。</p>
+        <h3 class="sub">平面の操作</h3>
+        <ul class="log-list" id="log-list"></ul>
+        <p class="log-empty" id="log-empty">まだ操作がありません。</p>
+        <textarea id="log-json" readonly hidden aria-label="操作ログのJSON"></textarea>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     データ定義（シンセを差し替えるときは、ここを作り直す）
+     params   : パラメータの値域・型・所属グループ
+     groups   : 平面の軸にするパラメータの組（PoCでは手で選定）
+     categories / presets : テキストからの初期音選択に使う
+     patterns : ループ再生のフレーズ（1ステップ = 16分音符）
+     ============================================================ -->
+<script type="application/json" id="synth-data">
+{
+  "params": {
+    "osc.wave":         {"label": "波形",           "type": "choice", "options": ["sawtooth", "square", "triangle", "sine"], "group": "osc"},
+    "osc.detune":       {"label": "デチューン",     "min": 0,     "max": 50,    "scale": "lin", "unit": "cent", "group": "osc"},
+    "osc.sub":          {"label": "サブ",           "min": 0,     "max": 1,     "scale": "lin", "unit": "%",    "group": "osc"},
+    "filter.cutoff":    {"label": "カットオフ",     "min": 60,    "max": 16000, "scale": "log", "unit": "Hz",   "group": "filter"},
+    "filter.resonance": {"label": "レゾナンス",     "min": 0.5,   "max": 18,    "scale": "log", "unit": "dB",   "group": "filter"},
+    "filter.envAmount": {"label": "エンベロープ量", "min": 0,     "max": 1,     "scale": "lin", "unit": "%",    "group": "filter"},
+    "filter.decay":     {"label": "フィルタ減衰",   "min": 0.03,  "max": 2,     "scale": "log", "unit": "s",    "group": "filter"},
+    "amp.attack":       {"label": "アタック",       "min": 0.002, "max": 2,     "scale": "log", "unit": "s",    "group": "env"},
+    "amp.decay":        {"label": "ディケイ",       "min": 0.03,  "max": 2,     "scale": "log", "unit": "s",    "group": "env"},
+    "amp.sustain":      {"label": "サステイン",     "min": 0,     "max": 1,     "scale": "lin", "unit": "%",    "group": "env"},
+    "amp.release":      {"label": "リリース",       "min": 0.01,  "max": 4,     "scale": "log", "unit": "s",    "group": "env"},
+    "fx.drive":         {"label": "ドライブ",       "min": 0,     "max": 1,     "scale": "lin", "unit": "%",    "group": "fx"},
+    "fx.delay":         {"label": "ディレイ",       "min": 0,     "max": 0.6,   "scale": "lin", "unit": "%",    "group": "fx"},
+    "fx.reverb":        {"label": "リバーブ",       "min": 0,     "max": 0.8,   "scale": "lin", "unit": "%",    "group": "fx"}
+  },
+  "groups": [
+    {"id": "filter", "label": "フィルタ",     "hint": "明るさとクセ",     "x": "filter.cutoff", "y": "filter.resonance", "xLow": "暗い",       "xHigh": "明るい",       "yLow": "素直",       "yHigh": "クセが強い",
+     "combo": {"x": {"name": "明るさ", "w": {"filter.cutoff": 1.0, "filter.envAmount": 0.4, "filter.resonance": 0.15}},
+               "y": {"name": "鋭さ",   "w": {"filter.resonance": 1.0, "filter.envAmount": 0.5, "filter.decay": -0.5}},
+               "xLow": "暗い", "xHigh": "明るい", "yLow": "素直", "yHigh": "鋭くクセが強い"}},
+    {"id": "env",    "label": "エンベロープ", "hint": "立ち上がりと余韻", "x": "amp.attack",    "y": "amp.release",      "xLow": "鋭く立ち上がる", "xHigh": "ふわっと立ち上がる", "yLow": "余韻が短い", "yHigh": "余韻が長い",
+     "combo": {"x": {"name": "柔らかさ", "w": {"amp.attack": 1.0, "amp.decay": 0.4}},
+               "y": {"name": "余韻",     "w": {"amp.release": 1.0, "amp.sustain": 0.5, "amp.decay": 0.4}},
+               "xLow": "鋭く立ち上がる", "xHigh": "ふわっと立ち上がる", "yLow": "余韻が短い", "yHigh": "余韻が長い"}},
+    {"id": "osc",    "label": "オシレータ",   "hint": "厚みと低域",       "x": "osc.detune",    "y": "osc.sub",          "xLow": "細い",       "xHigh": "広がる",       "yLow": "低域が軽い", "yHigh": "低域が太い",
+     "combo": {"x": {"name": "厚み", "w": {"osc.detune": 1.0, "osc.sub": 0.3}},
+               "y": {"name": "重心", "w": {"osc.sub": 1.0, "osc.detune": -0.3}},
+               "xLow": "細い", "xHigh": "厚い", "yLow": "高域寄り", "yHigh": "低域寄り"}},
+    {"id": "fx",     "label": "エフェクト",   "hint": "質感と空間",       "x": "fx.drive",      "y": "fx.reverb",        "xLow": "クリーン",   "xHigh": "歪む",         "yLow": "近い",       "yHigh": "遠い",
+     "combo": {"x": {"name": "荒さ", "w": {"fx.drive": 1.0, "fx.delay": 0.2}},
+               "y": {"name": "空間", "w": {"fx.reverb": 1.0, "fx.delay": 0.6, "fx.drive": -0.2}},
+               "xLow": "クリーン", "xHigh": "荒い", "yLow": "近い", "yHigh": "遠い"}}
+  ],
+  "categories": {
+    "bass":  {"label": "ベース",   "keywords": ["bass", "ベース", "808", "reese", "リース", "wobble", "ウォブル"], "pattern": "bass",  "octave": 3},
+    "lead":  {"label": "リード",   "keywords": ["lead", "リード", "melody", "メロディ", "主旋律"],                  "pattern": "lead",  "octave": 4},
+    "pad":   {"label": "パッド",   "keywords": ["pad", "パッド", "atmosphere", "ambient", "アンビエント", "drone", "ドローン"], "pattern": "pad", "octave": 3},
+    "pluck": {"label": "プラック", "keywords": ["pluck", "プラック", "arp", "アルペジオ"],                        "pattern": "pluck", "octave": 4}
+  },
+  "presets": [
+    {"id": "techno-rumble", "name": "Techno Rumble", "category": "bass",
+     "tags": ["techno", "dark", "rumble", "gritty", "industrial", "テクノ", "暗", "ダーク", "太", "歪"],
+     "params": {"osc.wave": "sawtooth", "osc.detune": 8, "osc.sub": 0.5, "filter.cutoff": 380, "filter.resonance": 2.5, "filter.envAmount": 0.35, "filter.decay": 0.18, "amp.attack": 0.003, "amp.decay": 0.25, "amp.sustain": 0.6, "amp.release": 0.1, "fx.drive": 0.45, "fx.delay": 0.05, "fx.reverb": 0.1}},
+    {"id": "deep-sub", "name": "Deep Sub", "category": "bass",
+     "tags": ["deep", "sub", "dark", "dubstep", "minimal", "ディープ", "深", "暗", "低", "サブ"],
+     "params": {"osc.wave": "sine", "osc.detune": 0, "osc.sub": 0.6, "filter.cutoff": 900, "filter.resonance": 0.8, "filter.envAmount": 0.1, "filter.decay": 0.2, "amp.attack": 0.004, "amp.decay": 0.3, "amp.sustain": 0.9, "amp.release": 0.12, "fx.drive": 0.15, "fx.delay": 0, "fx.reverb": 0}},
+    {"id": "acid-line", "name": "Acid Line", "category": "bass",
+     "tags": ["acid", "303", "squelch", "rave", "アシッド", "レイヴ", "ビキビキ"],
+     "params": {"osc.wave": "sawtooth", "osc.detune": 0, "osc.sub": 0.1, "filter.cutoff": 500, "filter.resonance": 12, "filter.envAmount": 0.7, "filter.decay": 0.15, "amp.attack": 0.003, "amp.decay": 0.2, "amp.sustain": 0.3, "amp.release": 0.08, "fx.drive": 0.35, "fx.delay": 0.15, "fx.reverb": 0.1}},
+    {"id": "reese", "name": "Reese", "category": "bass",
+     "tags": ["reese", "dnb", "drum and bass", "neuro", "wide", "ドラムンベース", "うねる", "うねり"],
+     "params": {"osc.wave": "sawtooth", "osc.detune": 38, "osc.sub": 0.4, "filter.cutoff": 1200, "filter.resonance": 1.5, "filter.envAmount": 0.1, "filter.decay": 0.4, "amp.attack": 0.01, "amp.decay": 0.5, "amp.sustain": 0.9, "amp.release": 0.15, "fx.drive": 0.3, "fx.delay": 0, "fx.reverb": 0.05}},
+    {"id": "supersaw", "name": "Supersaw", "category": "lead",
+     "tags": ["trance", "bright", "big", "festival", "edm", "anthem", "トランス", "明る", "派手", "壮大"],
+     "params": {"osc.wave": "sawtooth", "osc.detune": 30, "osc.sub": 0.1, "filter.cutoff": 7000, "filter.resonance": 1.2, "filter.envAmount": 0.15, "filter.decay": 0.4, "amp.attack": 0.01, "amp.decay": 0.4, "amp.sustain": 0.8, "amp.release": 0.35, "fx.drive": 0.1, "fx.delay": 0.3, "fx.reverb": 0.35}},
+    {"id": "chip-square", "name": "Chip Square", "category": "lead",
+     "tags": ["chiptune", "8bit", "retro", "game", "チップチューン", "レトロ", "ゲーム", "ピコピコ"],
+     "params": {"osc.wave": "square", "osc.detune": 0, "osc.sub": 0, "filter.cutoff": 9000, "filter.resonance": 0.7, "filter.envAmount": 0, "filter.decay": 0.1, "amp.attack": 0.002, "amp.decay": 0.1, "amp.sustain": 0.8, "amp.release": 0.05, "fx.drive": 0, "fx.delay": 0.2, "fx.reverb": 0.1}},
+    {"id": "mellow-lead", "name": "Mellow Lead", "category": "lead",
+     "tags": ["soft", "mellow", "lofi", "chill", "gentle", "やわらか", "柔らか", "優し", "チル", "ローファイ"],
+     "params": {"osc.wave": "triangle", "osc.detune": 4, "osc.sub": 0.1, "filter.cutoff": 2500, "filter.resonance": 0.8, "filter.envAmount": 0.1, "filter.decay": 0.3, "amp.attack": 0.03, "amp.decay": 0.5, "amp.sustain": 0.7, "amp.release": 0.4, "fx.drive": 0.05, "fx.delay": 0.25, "fx.reverb": 0.4}},
+    {"id": "warm-analog", "name": "Warm Analog", "category": "pad",
+     "tags": ["warm", "analog", "soft", "lush", "ウォーム", "温か", "あたたか", "柔らか", "やわらか"],
+     "params": {"osc.wave": "sawtooth", "osc.detune": 18, "osc.sub": 0.2, "filter.cutoff": 1400, "filter.resonance": 1, "filter.envAmount": 0.15, "filter.decay": 1.2, "amp.attack": 0.6, "amp.decay": 1, "amp.sustain": 0.8, "amp.release": 1.5, "fx.drive": 0.05, "fx.delay": 0.1, "fx.reverb": 0.5}},
+    {"id": "dark-drone", "name": "Dark Drone", "category": "pad",
+     "tags": ["dark", "cinematic", "drone", "ominous", "horror", "暗", "ダーク", "不穏", "映画", "ホラー"],
+     "params": {"osc.wave": "sawtooth", "osc.detune": 25, "osc.sub": 0.5, "filter.cutoff": 450, "filter.resonance": 3, "filter.envAmount": 0.05, "filter.decay": 1.5, "amp.attack": 1.2, "amp.decay": 1.5, "amp.sustain": 0.9, "amp.release": 2.5, "fx.drive": 0.2, "fx.delay": 0.1, "fx.reverb": 0.65}},
+    {"id": "airy-shimmer", "name": "Airy Shimmer", "category": "pad",
+     "tags": ["airy", "bright", "dreamy", "shimmer", "chill", "明る", "透明", "浮遊", "キラキラ", "夢"],
+     "params": {"osc.wave": "triangle", "osc.detune": 12, "osc.sub": 0, "filter.cutoff": 9000, "filter.resonance": 1.5, "filter.envAmount": 0.1, "filter.decay": 1, "amp.attack": 0.8, "amp.decay": 1, "amp.sustain": 0.7, "amp.release": 2, "fx.drive": 0, "fx.delay": 0.35, "fx.reverb": 0.75}},
+    {"id": "house-pluck", "name": "House Pluck", "category": "pluck",
+     "tags": ["house", "bouncy", "short", "deep house", "ハウス", "跳ね", "短"],
+     "params": {"osc.wave": "sawtooth", "osc.detune": 10, "osc.sub": 0.1, "filter.cutoff": 700, "filter.resonance": 3, "filter.envAmount": 0.6, "filter.decay": 0.12, "amp.attack": 0.002, "amp.decay": 0.18, "amp.sustain": 0, "amp.release": 0.15, "fx.drive": 0.1, "fx.delay": 0.25, "fx.reverb": 0.25}},
+    {"id": "glass-pluck", "name": "Glass Pluck", "category": "pluck",
+     "tags": ["glass", "bright", "future bass", "crystal", "kawaii", "ガラス", "明る", "キラキラ", "フューチャーベース"],
+     "params": {"osc.wave": "square", "osc.detune": 6, "osc.sub": 0, "filter.cutoff": 3500, "filter.resonance": 5, "filter.envAmount": 0.5, "filter.decay": 0.2, "amp.attack": 0.002, "amp.decay": 0.25, "amp.sustain": 0, "amp.release": 0.3, "fx.drive": 0, "fx.delay": 0.35, "fx.reverb": 0.4}},
+    {"id": "lofi-pluck", "name": "Lofi Pluck", "category": "pluck",
+     "tags": ["lofi", "warm", "dusty", "chill", "hiphop", "ローファイ", "チル", "くすん", "温か"],
+     "params": {"osc.wave": "triangle", "osc.detune": 5, "osc.sub": 0.2, "filter.cutoff": 1200, "filter.resonance": 1, "filter.envAmount": 0.3, "filter.decay": 0.2, "amp.attack": 0.004, "amp.decay": 0.3, "amp.sustain": 0, "amp.release": 0.25, "fx.drive": 0.25, "fx.delay": 0.15, "fx.reverb": 0.3}}
+  ],
+  "patterns": {
+    "bass":  {"length": 16, "events": [
+      {"s": 0, "n": [48], "g": 1.5}, {"s": 2, "n": [48], "g": 0.8}, {"s": 3, "n": [60], "g": 0.6}, {"s": 5, "n": [48], "g": 0.8},
+      {"s": 7, "n": [51], "g": 0.8}, {"s": 8, "n": [48], "g": 1.5}, {"s": 10, "n": [48], "g": 0.8}, {"s": 12, "n": [55], "g": 0.8},
+      {"s": 14, "n": [53], "g": 0.8}, {"s": 15, "n": [51], "g": 0.6}]},
+    "lead":  {"length": 32, "events": [
+      {"s": 0, "n": [72], "g": 2.5}, {"s": 3, "n": [75], "g": 2.5}, {"s": 6, "n": [79], "g": 1.8}, {"s": 8, "n": [77], "g": 1.8},
+      {"s": 10, "n": [75], "g": 1.8}, {"s": 12, "n": [74], "g": 3.5}, {"s": 16, "n": [72], "g": 2.5}, {"s": 19, "n": [75], "g": 2.5},
+      {"s": 22, "n": [79], "g": 1.8}, {"s": 24, "n": [82], "g": 1.8}, {"s": 26, "n": [80], "g": 1.8}, {"s": 28, "n": [79], "g": 3.5}]},
+    "pad":   {"length": 32, "events": [
+      {"s": 0, "n": [48, 55, 58, 63], "g": 15.5}, {"s": 16, "n": [44, 51, 55, 60], "g": 15.5}]},
+    "pluck": {"length": 16, "events": [
+      {"s": 0, "n": [60], "g": 0.6}, {"s": 1, "n": [67], "g": 0.6}, {"s": 2, "n": [72], "g": 0.6}, {"s": 3, "n": [75], "g": 0.6},
+      {"s": 4, "n": [60], "g": 0.6}, {"s": 5, "n": [67], "g": 0.6}, {"s": 6, "n": [72], "g": 0.6}, {"s": 7, "n": [74], "g": 0.6},
+      {"s": 8, "n": [58], "g": 0.6}, {"s": 9, "n": [65], "g": 0.6}, {"s": 10, "n": [70], "g": 0.6}, {"s": 11, "n": [74], "g": 0.6},
+      {"s": 12, "n": [58], "g": 0.6}, {"s": 13, "n": [65], "g": 0.6}, {"s": 14, "n": [70], "g": 0.6}, {"s": 15, "n": [72], "g": 0.6}]}
+  }
+}
+</script>
+
+<script>
+(() => {
+'use strict';
+
+// ------------------------------------------------------------
+// 1. データ読み込み
+// ------------------------------------------------------------
+const DATA = JSON.parse(document.getElementById('synth-data').textContent);
+const DEFS = DATA.params;
+const GROUPS = DATA.groups;
+const CATS = DATA.categories;
+const PRESETS = DATA.presets;
+const PATTERNS = DATA.patterns;
+const BPM = 124;
+const STEP = 60 / BPM / 4;
+const EXAMPLES = ['dark techno bass', '明るいトランスのリード', '暗くて不穏なパッド', 'キラキラしたフューチャーベースのプラック', 'acid 303', 'lofi chill pluck'];
+
+const state = {
+  prompt: '',
+  preset: PRESETS[0],
+  params: { ...PRESETS[0].params },
+  groupId: GROUPS[0].id,
+  axisMode: 'single',              // 'single' = 各軸が1パラメータ / 'combo' = 各軸が群内パラメータの重み付き方向
+  anchor: { ...PRESETS[0].params }, // combo モードで平面を張った時点の音（平面の中心）
+  pos: { u: 0.5, v: 0.5 },         // combo モードでの平面上の現在位置
+  trail: [],
+  playing: false,
+  kick: false,
+  log: [],
+  sessions: [],
+  session: null
+};
+
+const $ = (s) => document.querySelector(s);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const group = () => GROUPS.find((g) => g.id === state.groupId);
+
+// ------------------------------------------------------------
+// 2. テキスト → 初期プリセット（PoCはキーワード照合。CLAP検索などに差し替え可能）
+// ------------------------------------------------------------
+function rankPresets(text) {
+  const q = text.toLowerCase();
+  const catHits = {};
+  for (const [id, c] of Object.entries(CATS)) {
+    catHits[id] = c.keywords.filter((k) => q.includes(k.toLowerCase()));
+  }
+  return PRESETS.map((p, i) => {
+    const tagHits = p.tags.filter((t) => q.includes(t.toLowerCase()));
+    const cat = catHits[p.category];
+    return { preset: p, score: (cat.length ? 10 : 0) + tagHits.length, catWords: cat, tagWords: tagHits, i };
+  }).sort((a, b) => b.score - a.score || a.i - b.i);
+}
+
+// ------------------------------------------------------------
+// 3. 平面の座標 ⇔ パラメータ値（本番のシンセでもこのまま使う部分）
+// ------------------------------------------------------------
+function toNorm(id, v) {
+  const d = DEFS[id];
+  if (d.scale === 'log') return Math.log(v / d.min) / Math.log(d.max / d.min);
+  return (v - d.min) / (d.max - d.min);
+}
+function fromNorm(id, n) {
+  const d = DEFS[id];
+  const t = clamp(n, 0, 1);
+  if (d.scale === 'log') return d.min * Math.pow(d.max / d.min, t);
+  return d.min + t * (d.max - d.min);
+}
+function planeToParams(params, g, u, v) {
+  return { ...params, [g.x]: fromNorm(g.x, u), [g.y]: fromNorm(g.y, v) };
+}
+function paramsToPlane(params, g) {
+  return { u: clamp(toNorm(g.x, params[g.x]), 0, 1), v: clamp(toNorm(g.y, params[g.y]), 0, 1) };
+}
+
+// 組み合わせ（射影）モード：
+// 正規化したパラメータ空間で、平面を張った時点の音（anchor）を中心に置き、
+// 各軸を「群内パラメータの重み付き方向」として動かす。
+// PoCでは重みを手で決めている。本番ではここを主成分分析や個人化で決める。
+const SPAN = 1.0; // 平面の端から端で、重み1のパラメータが正規化値でどれだけ動くか
+function comboIds(g) {
+  return [...new Set([...Object.keys(g.combo.x.w), ...Object.keys(g.combo.y.w)])];
+}
+function comboToParams(params, anchor, g, u, v) {
+  const out = { ...params };
+  for (const id of comboIds(g)) {
+    const n = toNorm(id, anchor[id])
+      + (u - 0.5) * SPAN * (g.combo.x.w[id] || 0)
+      + (v - 0.5) * SPAN * (g.combo.y.w[id] || 0);
+    out[id] = fromNorm(id, n);
+  }
+  return out;
+}
+// ある音が平面上のどこに来るか（各軸への射影。軸が直交していない分は近似）
+function paramsToCombo(params, anchor, g) {
+  const proj = (w) => {
+    let dot = 0, norm = 0;
+    for (const [id, wi] of Object.entries(w)) {
+      dot += (toNorm(id, params[id]) - toNorm(id, anchor[id])) * wi;
+      norm += wi * wi;
+    }
+    return 0.5 + dot / (norm * SPAN);
+  };
+  return { u: proj(g.combo.x.w), v: proj(g.combo.y.w) };
+}
+function currentPos() {
+  const g = group();
+  return state.axisMode === 'combo' ? state.pos : paramsToPlane(state.params, g);
+}
+function initialPos() {
+  const g = group();
+  return state.axisMode === 'combo' ? paramsToCombo(state.preset.params, state.anchor, g) : paramsToPlane(state.preset.params, g);
+}
+// 群やモードを切り替えたとき、今の音を中心に平面を張り直す
+function reanchor() {
+  state.anchor = { ...state.params };
+  state.pos = { u: 0.5, v: 0.5 };
+  state.trail = [];
+}
+function axisLabel(g, axis) {
+  return state.axisMode === 'combo' ? g.combo[axis].name : DEFS[g[axis]].label;
+}
+function axisWords(g) {
+  const s = state.axisMode === 'combo' ? g.combo : g;
+  return { xLow: s.xLow, xHigh: s.xHigh, yLow: s.yLow, yHigh: s.yHigh };
+}
+function axisTag(g, id) {
+  if (state.axisMode === 'combo') {
+    const inX = id in g.combo.x.w;
+    const inY = id in g.combo.y.w;
+    return inX && inY ? 'XY' : inX ? 'X' : inY ? 'Y' : '';
+  }
+  return id === g.x ? 'X' : id === g.y ? 'Y' : '';
+}
+function formulaText(g, axis) {
+  return axis.toUpperCase() + ' ' + g.combo[axis].name + ' = '
+    + Object.entries(g.combo[axis].w).map(([id, w], i) => (i === 0 ? (w < 0 ? '−' : '') : (w < 0 ? ' − ' : ' + ')) + DEFS[id].label + '×' + Math.abs(w).toFixed(2)).join('');
+}
+
+const WAVE_LABEL = { sawtooth: 'ノコギリ波', square: '矩形波', triangle: '三角波', sine: 'サイン波' };
+function fmt(id, v) {
+  const d = DEFS[id];
+  if (d.type === 'choice') return WAVE_LABEL[v] || v;
+  switch (d.unit) {
+    case 'Hz': return v >= 1000 ? (v / 1000).toFixed(v >= 10000 ? 1 : 2) + ' kHz' : Math.round(v) + ' Hz';
+    case 's': return v < 1 ? Math.round(v * 1000) + ' ms' : v.toFixed(2) + ' s';
+    case '%': return Math.round(v * 100) + '%';
+    case 'cent': return Math.round(v) + ' cent';
+    case 'dB': return v.toFixed(1) + ' dB';
+    default: return String(v);
+  }
+}
+
+// ------------------------------------------------------------
+// 4. 音源（Web Audioの簡易シンセ。本番ではVital / Surge XTに差し替える部分）
+// ------------------------------------------------------------
+function makeCurve(amount) {
+  const k = 1 + amount * 14;
+  const n = 1024;
+  const curve = new Float32Array(n);
+  const norm = Math.tanh(k);
+  for (let i = 0; i < n; i++) {
+    const x = (i / (n - 1)) * 2 - 1;
+    curve[i] = Math.tanh(k * x) / norm;
+  }
+  return curve;
+}
+function makeImpulse(ctx, seconds, decay) {
+  const len = Math.floor(ctx.sampleRate * seconds);
+  const buf = ctx.createBuffer(2, len, ctx.sampleRate);
+  for (let ch = 0; ch < 2; ch++) {
+    const data = buf.getChannelData(ch);
+    for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+  }
+  return buf;
+}
+
+const Engine = {
+  ctx: null,
+  voices: new Set(),
+  lastDrive: -1,
+
+  init() {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    const ctx = new AC();
+    this.ctx = ctx;
+    this.voiceBus = ctx.createGain();
+    this.driveIn = ctx.createGain();
+    this.shaper = ctx.createWaveShaper();
+    this.shaper.oversample = '2x';
+    this.driveOut = ctx.createGain();
+    this.voiceBus.connect(this.driveIn);
+    this.driveIn.connect(this.shaper);
+    this.shaper.connect(this.driveOut);
+
+    this.sum = ctx.createGain();
+    this.dry = ctx.createGain();
+    this.driveOut.connect(this.dry);
+    this.dry.connect(this.sum);
+
+    this.delaySend = ctx.createGain();
+    this.delay = ctx.createDelay(1.5);
+    this.delay.delayTime.value = STEP * 3;
+    this.delayFb = ctx.createGain();
+    this.delayFb.gain.value = 0.38;
+    this.delayTone = ctx.createBiquadFilter();
+    this.delayTone.type = 'lowpass';
+    this.delayTone.frequency.value = 3200;
+    this.driveOut.connect(this.delaySend);
+    this.delaySend.connect(this.delay);
+    this.delay.connect(this.delayTone);
+    this.delayTone.connect(this.delayFb);
+    this.delayFb.connect(this.delay);
+    this.delayTone.connect(this.sum);
+
+    this.revSend = ctx.createGain();
+    this.conv = ctx.createConvolver();
+    this.conv.buffer = makeImpulse(ctx, 2.8, 2.4);
+    this.driveOut.connect(this.revSend);
+    this.revSend.connect(this.conv);
+    this.conv.connect(this.sum);
+
+    this.comp = ctx.createDynamicsCompressor();
+    this.comp.threshold.value = -14;
+    this.comp.ratio.value = 4;
+    this.comp.attack.value = 0.005;
+    this.comp.release.value = 0.2;
+    this.master = ctx.createGain();
+    this.master.gain.value = 0.75;
+    this.analyser = ctx.createAnalyser();
+    this.analyser.fftSize = 1024;
+    this.sum.connect(this.comp);
+    this.comp.connect(this.master);
+    this.master.connect(this.analyser);
+    this.analyser.connect(ctx.destination);
+
+    this.kickBus = ctx.createGain();
+    this.kickBus.gain.value = 0.9;
+    this.kickBus.connect(this.comp);
+
+    this.update(state.params, true);
+  },
+
+  update(p, immediate) {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    const tc = immediate ? 0.001 : 0.03;
+    const drive = p['fx.drive'];
+    if (Math.abs(drive - this.lastDrive) > 0.004) {
+      this.shaper.curve = drive < 0.01 ? null : makeCurve(drive);
+      this.lastDrive = drive;
+    }
+    this.driveIn.gain.setTargetAtTime(1 + drive * 1.5, now, tc);
+    this.driveOut.gain.setTargetAtTime(1 / (1 + drive * 1.3), now, tc);
+    this.dry.gain.setTargetAtTime(1 - p['fx.reverb'] * 0.45, now, tc);
+    this.revSend.gain.setTargetAtTime(p['fx.reverb'] * 1.3, now, tc);
+    this.delaySend.gain.setTargetAtTime(p['fx.delay'], now, tc);
+    for (const v of this.voices) {
+      if (v.start > now) continue;
+      v.filter.Q.setTargetAtTime(p['filter.resonance'], now, tc);
+      v.filter.frequency.setTargetAtTime(p['filter.cutoff'], now, tc);
+      v.oscs[0].detune.setTargetAtTime(-p['osc.detune'], now, tc);
+      v.oscs[2].detune.setTargetAtTime(p['osc.detune'], now, tc);
+      v.subGain.gain.setTargetAtTime(p['osc.sub'] * 0.55, now, tc);
+    }
+  },
+
+  // gateEnd が null のときは押している間だけ鳴らす（releaseで止める）
+  noteOn(midi, t, gateEnd, vel, p) {
+    const ctx = this.ctx;
+    const f = 440 * Math.pow(2, (midi - 69) / 12);
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.Q.value = p['filter.resonance'];
+    const mix = ctx.createGain();
+    mix.gain.value = 0.26;
+    const d = p['osc.detune'];
+    const oscs = [-d, 0, d].map((dt) => {
+      const o = ctx.createOscillator();
+      o.type = p['osc.wave'];
+      o.frequency.value = f;
+      o.detune.value = dt;
+      o.connect(mix);
+      return o;
+    });
+    const sub = ctx.createOscillator();
+    sub.type = 'sine';
+    sub.frequency.value = f / 2;
+    const subGain = ctx.createGain();
+    subGain.gain.value = p['osc.sub'] * 0.55;
+    sub.connect(subGain);
+    subGain.connect(filter);
+    mix.connect(filter);
+    const amp = ctx.createGain();
+    amp.gain.value = 0;
+    filter.connect(amp);
+    amp.connect(this.voiceBus);
+
+    const cutoff = p['filter.cutoff'];
+    const peak = Math.min(cutoff * Math.pow(2, p['filter.envAmount'] * 5), 18000);
+    filter.frequency.setValueAtTime(peak, t);
+    filter.frequency.setTargetAtTime(cutoff, t, Math.max(p['filter.decay'] / 3, 0.005));
+
+    const A = p['amp.attack'];
+    const D = p['amp.decay'];
+    const S = p['amp.sustain'];
+    const g = amp.gain;
+    g.setValueAtTime(0, t);
+    if (gateEnd !== null && gateEnd - t < A) {
+      g.linearRampToValueAtTime(vel * (gateEnd - t) / A, gateEnd);
+    } else {
+      g.linearRampToValueAtTime(vel, t + A);
+      g.setTargetAtTime(vel * S, t + A, Math.max(D / 3, 0.005));
+    }
+
+    const all = [...oscs, sub];
+    all.forEach((o) => o.start(t));
+    const voice = { oscs, sub, subGain, filter, amp, all, start: t, stopped: false };
+    this.voices.add(voice);
+    sub.onended = () => {
+      this.voices.delete(voice);
+      try { amp.disconnect(); } catch (e) { /* 既に切断済み */ }
+    };
+    if (gateEnd !== null) this.release(voice, gateEnd, p, true);
+    return voice;
+  },
+
+  release(voice, t, p, scheduled) {
+    if (voice.stopped) return;
+    voice.stopped = true;
+    const R = p['amp.release'];
+    const g = voice.amp.gain;
+    if (!scheduled) {
+      const cur = g.value;
+      g.cancelScheduledValues(t);
+      g.setValueAtTime(cur, t);
+    }
+    g.setTargetAtTime(0, t, Math.max(R / 4, 0.004));
+    const end = t + R * 1.8 + 0.05;
+    voice.all.forEach((o) => { try { o.stop(end); } catch (e) { /* 停止済み */ } });
+  },
+
+  kick(t) {
+    const ctx = this.ctx;
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(150, t);
+    o.frequency.exponentialRampToValueAtTime(42, t + 0.12);
+    g.gain.setValueAtTime(1, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+    o.connect(g);
+    g.connect(this.kickBus);
+    o.start(t);
+    o.stop(t + 0.4);
+    o.onended = () => g.disconnect();
+  },
+
+  stopAll() {
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+    for (const v of this.voices) {
+      v.stopped = true;
+      const g = v.amp.gain;
+      const cur = g.value;
+      g.cancelScheduledValues(now);
+      g.setValueAtTime(cur, now);
+      g.setTargetAtTime(0, now, 0.02);
+      v.all.forEach((o) => { try { o.stop(now + 0.15); } catch (e) { /* 停止済み */ } });
+    }
+  }
+};
+
+function ensureAudio() {
+  if (!Engine.ctx) {
+    Engine.init();
+    requestAnimationFrame(frame);
+  }
+  if (Engine.ctx.state === 'suspended') Engine.ctx.resume();
+}
+
+// ループ再生（先読みスケジューラ）
+const Seq = {
+  timer: null,
+  step: 0,
+  next: 0,
+  queue: [],
+  start() {
+    ensureAudio();
+    this.step = 0;
+    this.next = Engine.ctx.currentTime + 0.06;
+    this.queue = [];
+    clearInterval(this.timer);
+    this.timer = setInterval(() => this.tick(), 25);
+    state.playing = true;
+    renderTransport();
+  },
+  stop() {
+    clearInterval(this.timer);
+    this.timer = null;
+    state.playing = false;
+    this.queue = [];
+    Engine.stopAll();
+    renderTransport();
+    renderSteps(-1);
+  },
+  restart() {
+    if (!state.playing) return;
+    Engine.stopAll();
+    this.step = 0;
+    this.queue = [];
+    this.next = Engine.ctx.currentTime + 0.06;
+    buildSteps();
+  },
+  tick() {
+    const ctx = Engine.ctx;
+    const pat = PATTERNS[CATS[state.preset.category].pattern];
+    while (this.next < ctx.currentTime + 0.12) {
+      const s = this.step % pat.length;
+      for (const ev of pat.events) {
+        if (ev.s !== s) continue;
+        const vel = 0.85 / Math.sqrt(ev.n.length);
+        ev.n.forEach((m) => Engine.noteOn(m, this.next, this.next + ev.g * STEP, vel, state.params));
+      }
+      if (state.kick && s % 4 === 0) Engine.kick(this.next);
+      this.queue.push({ s, t: this.next });
+      this.next += STEP;
+      this.step++;
+    }
+  }
+};
+
+// 鍵盤：押している間だけ鳴らす（音色は平面側でその場で変わる）
+const PC_KEYS = ['KeyA', 'KeyW', 'KeyS', 'KeyE', 'KeyD', 'KeyF', 'KeyT', 'KeyG', 'KeyY', 'KeyH', 'KeyU', 'KeyJ', 'KeyK', 'KeyO', 'KeyL', 'KeyP', 'Semicolon'];
+const PC_LABEL = ['A', 'W', 'S', 'E', 'D', 'F', 'T', 'G', 'Y', 'H', 'U', 'J', 'K', 'O', 'L', 'P', ';'];
+const KEY_COUNT = 25; // 2オクターブ＋上のC
+const BLACK = [1, 3, 6, 8, 10];
+const sounding = new Map(); // 押している入力 → {off, voice}
+let octave = 3;
+const baseMidi = () => 12 * (octave + 1);
+function keyEl(off) { return document.querySelector('#kbd [data-off="' + off + '"]'); }
+function refreshKey(off) {
+  const el = keyEl(off);
+  if (!el) return;
+  const on = [...sounding.values()].some((n) => n.off === off);
+  el.classList.toggle('down', on);
+}
+function noteDown(src, off) {
+  if (sounding.has(src) || off < 0 || off >= KEY_COUNT) return;
+  ensureAudio();
+  touchSession().notes++;
+  const t = Engine.ctx.currentTime + 0.003;
+  const voice = Engine.noteOn(baseMidi() + off, t, null, 0.55, state.params);
+  sounding.set(src, { off, voice });
+  refreshKey(off);
+}
+function noteUp(src) {
+  const n = sounding.get(src);
+  if (!n) return;
+  sounding.delete(src);
+  Engine.release(n.voice, Engine.ctx.currentTime, state.params, false);
+  refreshKey(n.off);
+}
+function releaseAllKeys() { [...sounding.keys()].forEach(noteUp); }
+function noteName(midi) { return ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'][midi % 12] + (Math.floor(midi / 12) - 1); }
+function buildKeyboard() {
+  const box = $('#kbd');
+  box.innerHTML = '';
+  const whites = [];
+  for (let off = 0; off < KEY_COUNT; off++) if (!BLACK.includes(off % 12)) whites.push(off);
+  const ww = 100 / whites.length;
+  for (let off = 0; off < KEY_COUNT; off++) {
+    const k = document.createElement('div');
+    k.dataset.off = String(off);
+    const pc = off < PC_LABEL.length ? PC_LABEL[off] : '';
+    if (BLACK.includes(off % 12)) {
+      const wi = whites.filter((w) => w < off).length;
+      k.className = 'key-b';
+      k.style.left = 'calc(' + (wi * ww) + '% - ' + (ww * 0.3) + '%)';
+      k.style.width = (ww * 0.6) + '%';
+      k.textContent = pc;
+    } else {
+      k.className = 'key-w';
+      const name = document.createElement('b');
+      name.textContent = off % 12 === 0 ? noteName(baseMidi() + off) : '';
+      const lab = document.createElement('span');
+      lab.textContent = pc;
+      k.append(name, lab);
+    }
+    box.appendChild(k);
+  }
+  $('#oct-label').textContent = noteName(baseMidi()) + '–' + noteName(baseMidi() + KEY_COUNT - 1);
+}
+function setOctave(o) {
+  releaseAllKeys();
+  octave = clamp(o, 1, 6);
+  buildKeyboard();
+}
+
+// ------------------------------------------------------------
+// 5. UI
+// ------------------------------------------------------------
+function renderExamples() {
+  const box = $('#examples');
+  box.innerHTML = '';
+  EXAMPLES.forEach((text) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip';
+    b.textContent = text;
+    b.addEventListener('click', () => { $('#prompt').value = text; runSearch(text); });
+    box.appendChild(b);
+  });
+}
+
+function renderPresetSelect() {
+  const sel = $('#preset-select');
+  sel.innerHTML = '';
+  for (const [id, c] of Object.entries(CATS)) {
+    const og = document.createElement('optgroup');
+    og.label = c.label;
+    PRESETS.filter((p) => p.category === id).forEach((p) => {
+      const o = document.createElement('option');
+      o.value = p.id;
+      o.textContent = p.name;
+      og.appendChild(o);
+    });
+    sel.appendChild(og);
+  }
+}
+
+function runSearch(text) {
+  state.prompt = text.trim();
+  const ranked = rankPresets(state.prompt);
+  const best = ranked[0];
+  const msg = $('#result-msg');
+  if (!state.prompt || best.score === 0) {
+    msg.textContent = '一致するキーワードが見つかりませんでした。ベース、リード、パッド、プラックのどれかを入れてみてください。';
+    msg.className = 'msg warn';
+    renderResult(state.preset, [], []);
+    renderAlternatives([]);
+    return;
+  }
+  msg.textContent = 'キーワード照合で選びました。本番ではCLAPなどの検索に差し替えられます。';
+  msg.className = 'msg';
+  selectPreset(best.preset);
+  renderResult(best.preset, best.catWords, best.tagWords);
+  renderAlternatives(ranked.slice(1).filter((r) => r.score > 0).slice(0, 3));
+}
+
+function selectPreset(p) {
+  // 途中で別の音に切り替えたら、それまでのセッションは「別の音へ」として閉じる
+  if (state.session && hasActivity(state.session)) endSession('switched');
+  state.session = null;
+  $('#session-msg').textContent = '';
+  const catChanged = !state.preset || state.preset.category !== p.category;
+  state.preset = p;
+  state.params = { ...p.params };
+  reanchor();
+  if (catChanged) setOctave(CATS[p.category].octave);
+  $('#preset-select').value = p.id;
+  Engine.update(state.params, true);
+  Seq.restart();
+  renderParamList();
+  renderAxes();
+  drawPlane();
+  startSession();
+}
+
+function renderResult(p, catWords, tagWords) {
+  $('#result-name').textContent = p.name;
+  const meta = $('#result-meta');
+  meta.innerHTML = '';
+  const cat = document.createElement('span');
+  cat.className = 'cat';
+  cat.textContent = CATS[p.category].label;
+  meta.appendChild(cat);
+  const words = [...catWords, ...tagWords];
+  if (words.length) {
+    const lab = document.createElement('span');
+    lab.textContent = '一致：';
+    meta.appendChild(lab);
+    words.forEach((w) => {
+      const k = document.createElement('span');
+      k.className = 'kw';
+      k.textContent = w;
+      meta.appendChild(k);
+    });
+  }
+}
+
+function renderAlternatives(list) {
+  const box = $('#result-alt');
+  box.innerHTML = '';
+  if (!list.length) return;
+  const lab = document.createElement('span');
+  lab.textContent = 'ほかの候補：';
+  box.appendChild(lab);
+  list.forEach((r) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip';
+    b.textContent = r.preset.name;
+    b.addEventListener('click', () => {
+      selectPreset(r.preset);
+      renderResult(r.preset, r.catWords, r.tagWords);
+    });
+    box.appendChild(b);
+  });
+}
+
+function renderGroups() {
+  const box = $('#groups');
+  box.innerHTML = '';
+  GROUPS.forEach((g) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'group';
+    b.setAttribute('aria-pressed', String(g.id === state.groupId));
+    const s = document.createElement('strong');
+    s.textContent = g.label;
+    const h = document.createElement('span');
+    h.textContent = g.hint + '（' + axisLabel(g, 'x') + ' × ' + axisLabel(g, 'y') + '）';
+    b.append(s, h);
+    b.addEventListener('click', () => {
+      state.groupId = g.id;
+      reanchor();
+      noteGroupVisit();
+      renderGroups();
+      renderParamList();
+      renderAxes();
+      drawPlane();
+    });
+    box.appendChild(b);
+  });
+}
+
+const rowEls = {};
+function renderParamList() {
+  const box = $('#params');
+  box.innerHTML = '';
+  const g = group();
+  GROUPS.forEach((grp) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'pgroup';
+    const title = document.createElement('div');
+    title.className = 'pgroup-title';
+    title.textContent = grp.label;
+    wrap.appendChild(title);
+    Object.entries(DEFS).filter(([, d]) => d.group === grp.id).forEach(([id, d]) => {
+      const row = document.createElement('div');
+      row.className = 'prow' + (d.type === 'choice' ? ' is-choice' : '');
+      const name = document.createElement('span');
+      name.className = 'name';
+      name.textContent = d.label;
+      const tag = axisTag(g, id);
+      if (tag) {
+        row.classList.add('is-axis');
+        const t = document.createElement('span');
+        t.className = 'axis-tag';
+        t.textContent = tag;
+        name.appendChild(t);
+      }
+      const bar = document.createElement('span');
+      bar.className = 'bar';
+      const fill = document.createElement('span');
+      bar.appendChild(fill);
+      const val = document.createElement('span');
+      val.className = 'val';
+      row.append(name, bar, val);
+      wrap.appendChild(row);
+      rowEls[id] = { fill, val };
+    });
+    box.appendChild(wrap);
+  });
+  updateParamValues();
+}
+
+function updateParamValues() {
+  for (const [id, d] of Object.entries(DEFS)) {
+    const el = rowEls[id];
+    if (!el) continue;
+    const v = state.params[id];
+    el.val.textContent = fmt(id, v);
+    if (d.type !== 'choice') el.fill.style.width = (clamp(toNorm(id, v), 0, 1) * 100).toFixed(1) + '%';
+  }
+  const g = group();
+  $('#readout').innerHTML = '';
+  const pos = currentPos();
+  [['X', 'x', pos.u], ['Y', 'y', pos.v]].forEach(([axis, key, p]) => {
+    const line = document.createElement('span');
+    const b = document.createElement('b');
+    if (state.axisMode === 'combo') {
+      const val = (p - 0.5) * 2;
+      b.textContent = (val >= 0 ? '+' : '−') + Math.abs(val).toFixed(2);
+    } else {
+      b.textContent = fmt(g[key], state.params[g[key]]);
+    }
+    line.append(axis + ' ' + axisLabel(g, key) + '  ', b);
+    $('#readout').appendChild(line);
+  });
+}
+
+function renderAxes() {
+  const g = group();
+  const words = axisWords(g);
+  $('#x-low').textContent = '← ' + words.xLow;
+  $('#x-high').textContent = words.xHigh + ' →';
+  $('#x-name').textContent = axisLabel(g, 'x');
+  $('#y-high').textContent = '↑ ' + words.yHigh;
+  $('#y-low').textContent = '↓ ' + words.yLow;
+  $('#y-name').textContent = axisLabel(g, 'y');
+  const detail = $('#axis-detail');
+  if (state.axisMode === 'combo') {
+    detail.hidden = false;
+    detail.innerHTML = '';
+    ['x', 'y'].forEach((a) => {
+      const line = document.createElement('div');
+      line.textContent = formulaText(g, a);
+      detail.appendChild(line);
+    });
+  } else {
+    detail.hidden = true;
+  }
+}
+
+function renderModes() {
+  document.querySelectorAll('.mode').forEach((b) => {
+    b.setAttribute('aria-pressed', String(b.dataset.mode === state.axisMode));
+  });
+  $('#mode-desc').textContent = state.axisMode === 'combo'
+    ? '各軸が、群の中の複数のパラメータを重み付きで同時に動かす方向です。平面の中心は、群を選んだ時点の音です。'
+    : '各軸が1つのパラメータに対応し、平面の端から端がそのパラメータの値域全体です。';
+}
+
+function renderTransport() {
+  const b = $('#play');
+  b.textContent = state.playing ? '■ 停止' : '▶ ループ再生';
+  b.setAttribute('aria-pressed', String(state.playing));
+}
+
+let stepEls = [];
+function buildSteps() {
+  const len = PATTERNS[CATS[state.preset.category].pattern].length;
+  const box = $('#steps');
+  box.innerHTML = '';
+  stepEls = [];
+  for (let i = 0; i < len; i++) {
+    const d = document.createElement('i');
+    if (i % 4 === 0) d.className = 'beat';
+    box.appendChild(d);
+    stepEls.push(d);
+  }
+}
+let lastStep = -2;
+function renderSteps(s) {
+  if (s === lastStep) return;
+  stepEls.forEach((el, i) => el.classList.toggle('on', i === s));
+  lastStep = s;
+}
+
+// --- 平面の描画 ---
+function colors() {
+  const cs = getComputedStyle(document.documentElement);
+  const v = (n) => cs.getPropertyValue(n).trim();
+  return { bg: v('--plane-bg'), grid: v('--plane-grid'), axis: v('--plane-axis'), accent: v('--accent'), muted: v('--muted') };
+}
+
+const planeEl = $('#plane');
+function drawPlane() {
+  const rect = planeEl.getBoundingClientRect();
+  if (!rect.width || !rect.height) return;
+  const dpr = window.devicePixelRatio || 1;
+  const W = Math.round(rect.width * dpr);
+  const H = Math.round(rect.height * dpr);
+  if (planeEl.width !== W || planeEl.height !== H) { planeEl.width = W; planeEl.height = H; }
+  const c = planeEl.getContext('2d');
+  c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const w = rect.width;
+  const h = rect.height;
+  const col = colors();
+  const X = (u) => u * w;
+  const Y = (v) => (1 - v) * h;
+
+  c.fillStyle = col.bg;
+  c.fillRect(0, 0, w, h);
+  c.lineWidth = 1;
+  for (let i = 1; i < 8; i++) {
+    c.strokeStyle = i === 4 ? col.axis : col.grid;
+    c.beginPath(); c.moveTo(Math.round(i * w / 8) + 0.5, 0); c.lineTo(Math.round(i * w / 8) + 0.5, h); c.stroke();
+    c.beginPath(); c.moveTo(0, Math.round(i * h / 8) + 0.5); c.lineTo(w, Math.round(i * h / 8) + 0.5); c.stroke();
+  }
+
+  const init = initialPos();
+  const cur = currentPos();
+
+  // なぞった軌跡
+  const tr = state.trail;
+  c.strokeStyle = col.accent;
+  c.lineWidth = 2;
+  c.lineCap = 'round';
+  for (let i = 1; i < tr.length; i++) {
+    c.globalAlpha = (i / tr.length) * 0.55;
+    c.beginPath();
+    c.moveTo(X(tr[i - 1].u), Y(tr[i - 1].v));
+    c.lineTo(X(tr[i].u), Y(tr[i].v));
+    c.stroke();
+  }
+  c.globalAlpha = 1;
+
+  // 現在位置の十字線
+  c.setLineDash([4, 4]);
+  c.strokeStyle = col.accent;
+  c.globalAlpha = 0.45;
+  c.lineWidth = 1;
+  c.beginPath(); c.moveTo(X(cur.u), 0); c.lineTo(X(cur.u), h); c.stroke();
+  c.beginPath(); c.moveTo(0, Y(cur.v)); c.lineTo(w, Y(cur.v)); c.stroke();
+  c.setLineDash([]);
+  c.globalAlpha = 1;
+
+  // 初期音の位置（組み合わせモードでは平面の外に出ることがあるので、そのときは描かない）
+  const inside = init.u >= 0 && init.u <= 1 && init.v >= 0 && init.v <= 1;
+  if (inside) {
+  c.strokeStyle = col.muted;
+  c.lineWidth = 1.5;
+  c.beginPath(); c.arc(X(init.u), Y(init.v), 7, 0, Math.PI * 2); c.stroke();
+  c.fillStyle = col.muted;
+  c.font = '500 12px "IBM Plex Sans JP", system-ui, sans-serif';
+  const label = '初期音';
+  const lw = c.measureText(label).width;
+  const lx = X(init.u) + 12 + lw > w - 4 ? X(init.u) - 12 - lw : X(init.u) + 12;
+  const ly = Y(init.v) - 10 < 14 ? Y(init.v) + 20 : Y(init.v) - 10;
+  c.fillText(label, lx, ly);
+  }
+
+  // 現在位置
+  c.fillStyle = col.bg;
+  c.beginPath(); c.arc(X(cur.u), Y(cur.v), 11, 0, Math.PI * 2); c.fill();
+  c.fillStyle = col.accent;
+  c.beginPath(); c.arc(X(cur.u), Y(cur.v), 8, 0, Math.PI * 2); c.fill();
+}
+
+let pending = false;
+function scheduleUpdate() {
+  if (pending) return;
+  pending = true;
+  requestAnimationFrame(() => {
+    pending = false;
+    Engine.update(state.params, false);
+    updateParamValues();
+    drawPlane();
+  });
+}
+
+function moveTo(u, v) {
+  const g = group();
+  const cu = clamp(u, 0, 1);
+  const cv = clamp(v, 0, 1);
+  if (state.axisMode === 'combo') {
+    state.pos = { u: cu, v: cv };
+    state.params = comboToParams(state.params, state.anchor, g, cu, cv);
+  } else {
+    state.params = planeToParams(state.params, g, cu, cv);
+  }
+  state.trail.push({ u: cu, v: cv });
+  if (state.trail.length > 90) state.trail.shift();
+  scheduleUpdate();
+}
+
+// --- 操作ログ ---
+let dragStart = null;
+let dragPoints = 0;
+function snapshotAxes() {
+  return { group: state.groupId, mode: state.axisMode, params: { ...state.params } };
+}
+function pushLog() {
+  if (!dragStart) return;
+  const g = group();
+  if (dragStart.group !== g.id || dragStart.mode !== state.axisMode) return;
+  // パラメータ単位で、動いたものをすべて記録する
+  const changes = {};
+  for (const [id, d] of Object.entries(DEFS)) {
+    if (d.type === 'choice') continue;
+    const a = dragStart.params[id];
+    const b = state.params[id];
+    if (Math.abs(a - b) > 1e-9) changes[id] = { from: a, to: b };
+  }
+  if (!Object.keys(changes).length) return;
+  const s = touchSession();
+  const entry = {
+    sessionId: s.id,
+    time: new Date().toISOString(),
+    prompt: state.prompt,
+    preset: state.preset.id,
+    category: state.preset.category,
+    group: g.id,
+    axisMode: state.axisMode,
+    playing: state.playing,
+    points: dragPoints,
+    changes,
+    params: { ...state.params }
+  };
+  if (state.axisMode === 'combo') {
+    entry.axes = { x: g.combo.x, y: g.combo.y };
+    entry.planePos = { ...state.pos };
+  }
+  state.log.push(entry);
+  renderLog();
+}
+// --- セッション（音作り1回分）---
+const IDLE_MS = 5 * 60 * 1000; // 5分操作がなければ、前のセッションは放置として閉じる
+let sessionSeq = 0;
+const OUTCOME_LABEL = { decided: '決定', abandoned: 'やり直し', switched: '別の音へ', idle: '放置' };
+function startSession() {
+  const now = Date.now();
+  state.session = {
+    id: ++sessionSeq,
+    startedAt: new Date(now).toISOString(),
+    t0: now,
+    lastActive: now,
+    prompt: state.prompt,
+    preset: state.preset.id,
+    category: state.preset.category,
+    startParams: { ...state.params },
+    groupOrder: [{ group: state.groupId, axisMode: state.axisMode, atSec: 0 }],
+    moves: 0,
+    notes: 0
+  };
+  renderSessionInfo();
+}
+function hasActivity(s) { return s && (s.moves > 0 || s.notes > 0); }
+function endSession(outcome) {
+  const s = state.session;
+  if (!s) return null;
+  const now = Date.now();
+  const rec = {
+    id: s.id,
+    startedAt: s.startedAt,
+    endedAt: new Date(now).toISOString(),
+    durationSec: +((now - s.t0) / 1000).toFixed(1),
+    outcome,
+    rating: null,
+    prompt: s.prompt,
+    preset: s.preset,
+    category: s.category,
+    groupOrder: s.groupOrder,
+    planeOperations: s.moves,
+    notesPlayed: s.notes,
+    startParams: s.startParams,
+    finalParams: { ...state.params }
+  };
+  state.sessions.push(rec);
+  state.session = null;
+  renderLog();
+  return rec;
+}
+// 操作のたびに呼ぶ。長く放置されていたら区切り直す
+function touchSession() {
+  const now = Date.now();
+  if (state.session && now - state.session.lastActive > IDLE_MS) {
+    if (hasActivity(state.session)) endSession('idle');
+    state.session = null;
+  }
+  if (!state.session) startSession();
+  state.session.lastActive = now;
+  return state.session;
+}
+function noteGroupVisit() {
+  const s = touchSession();
+  const last = s.groupOrder[s.groupOrder.length - 1];
+  if (last && last.group === state.groupId && last.axisMode === state.axisMode) return;
+  s.groupOrder.push({ group: state.groupId, axisMode: state.axisMode, atSec: +((Date.now() - s.t0) / 1000).toFixed(1) });
+}
+function fmtDur(sec) {
+  const m = Math.floor(sec / 60);
+  const r = Math.floor(sec % 60);
+  return m + ':' + String(r).padStart(2, '0');
+}
+function renderSessionInfo() {
+  const s = state.session;
+  const el = $('#session-info');
+  if (!s) { el.textContent = '次の操作から新しいセッションを始めます'; return; }
+  el.textContent = 'セッション ' + s.id + ' · 経過 ' + fmtDur((Date.now() - s.t0) / 1000) + ' · 平面の操作 ' + s.moves + '回 · 打鍵 ' + s.notes + '回';
+}
+setInterval(renderSessionInfo, 1000);
+
+function renderLog() {
+  $('#log-count').textContent = 'セッション ' + state.sessions.length + '件 · 操作 ' + state.log.length + '件';
+  $('#log-empty').hidden = state.log.length > 0;
+  $('#session-empty').hidden = state.sessions.length > 0;
+  const slist = $('#session-list');
+  slist.innerHTML = '';
+  state.sessions.slice(-4).reverse().forEach((r) => {
+    const li = document.createElement('li');
+    const when = document.createElement('span');
+    when.className = 'when';
+    const p = PRESETS.find((x) => x.id === r.preset);
+    const out = document.createElement('span');
+    out.className = 'outcome';
+    out.textContent = OUTCOME_LABEL[r.outcome] + (r.rating ? '（満足度 ' + r.rating + '）' : '');
+    when.append('セッション ' + r.id + ' · ' + (p ? p.name : r.preset) + ' · ' + fmtDur(r.durationSec) + ' · ', out);
+    const chg = document.createElement('span');
+    chg.className = 'chg';
+    const route = r.groupOrder.map((v) => (GROUPS.find((g) => g.id === v.group) || {}).label + (v.axisMode === 'combo' ? '(組)' : '')).join(' → ');
+    chg.textContent = '触った群: ' + route + ' / 平面の操作 ' + r.planeOperations + '回 / 打鍵 ' + r.notesPlayed + '回';
+    li.append(when, chg);
+    slist.appendChild(li);
+  });
+  const list = $('#log-list');
+  list.innerHTML = '';
+  state.log.slice(-4).reverse().forEach((e) => {
+    const li = document.createElement('li');
+    const when = document.createElement('span');
+    when.className = 'when';
+    const d = new Date(e.time);
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    const ss = String(d.getSeconds()).padStart(2, '0');
+    const p = PRESETS.find((x) => x.id === e.preset);
+    const g = GROUPS.find((x) => x.id === e.group);
+    when.textContent = hh + ':' + mm + ':' + ss + ' · ' + (p ? p.name : e.preset) + ' · ' + (g ? g.label : e.group);
+    const chg = document.createElement('span');
+    chg.className = 'chg';
+    chg.textContent = Object.entries(e.changes).map(([id, c]) => DEFS[id].label + ' ' + fmt(id, c.from) + ' → ' + fmt(id, c.to)).join(' / ');
+    li.append(when, chg);
+    list.appendChild(li);
+  });
+}
+
+// --- イベント ---
+let dragging = false;
+function eventToPlane(e) {
+  const r = planeEl.getBoundingClientRect();
+  return { u: (e.clientX - r.left) / r.width, v: 1 - (e.clientY - r.top) / r.height };
+}
+planeEl.addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  ensureAudio();
+  planeEl.focus({ preventScroll: true });
+  planeEl.setPointerCapture(e.pointerId);
+  touchSession();
+  dragging = true;
+  dragStart = snapshotAxes();
+  dragPoints = 0;
+  const pt = eventToPlane(e);
+  moveTo(pt.u, pt.v);
+  Engine.update(state.params, true);
+});
+planeEl.addEventListener('pointermove', (e) => {
+  if (!dragging) return;
+  const pt = eventToPlane(e);
+  dragPoints++;
+  moveTo(pt.u, pt.v);
+});
+function endDrag() {
+  if (!dragging) return;
+  dragging = false;
+  touchSession().moves++;
+  pushLog();
+  dragStart = null;
+}
+planeEl.addEventListener('pointerup', endDrag);
+planeEl.addEventListener('pointercancel', endDrag);
+planeEl.addEventListener('lostpointercapture', endDrag);
+
+planeEl.addEventListener('keydown', (e) => {
+  const keys = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, 1], ArrowDown: [0, -1] };
+  if (!keys[e.key]) return;
+  e.preventDefault();
+  const stepSize = e.shiftKey ? 0.1 : 0.02;
+  const cur = currentPos();
+  if (!dragStart) { dragStart = snapshotAxes(); dragPoints = 0; }
+  dragPoints++;
+  moveTo(cur.u + keys[e.key][0] * stepSize, cur.v + keys[e.key][1] * stepSize);
+});
+planeEl.addEventListener('keyup', (e) => {
+  if (!e.key.startsWith('Arrow')) return;
+  touchSession().moves++;
+  pushLog();
+  dragStart = null;
+});
+
+$('#search-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  runSearch($('#prompt').value);
+});
+$('#preset-select').addEventListener('change', (e) => {
+  const p = PRESETS.find((x) => x.id === e.target.value);
+  if (!p) return;
+  selectPreset(p);
+  renderResult(p, [], []);
+  renderAlternatives([]);
+  $('#result-msg').textContent = '手動で選びました。';
+  $('#result-msg').className = 'msg';
+});
+$('#play').addEventListener('click', () => {
+  if (state.playing) Seq.stop();
+  else { buildSteps(); Seq.start(); }
+});
+$('#kick').addEventListener('change', (e) => { state.kick = e.target.checked; });
+let pendingRating = null;
+function showMsg(text) {
+  $('#session-msg').textContent = text;
+}
+$('#decide').addEventListener('click', () => {
+  if (!state.session) startSession();
+  const rec = endSession('decided');
+  pendingRating = rec;
+  $('#rating').hidden = false;
+  showMsg('');
+  // 決定した音から、次のセッションを続けて始める
+  reanchor();
+  drawPlane();
+  startSession();
+});
+document.querySelectorAll('.star').forEach((b) => {
+  b.addEventListener('click', () => {
+    if (pendingRating) pendingRating.rating = Number(b.dataset.r);
+    pendingRating = null;
+    $('#rating').hidden = true;
+    showMsg('満足度 ' + b.dataset.r + ' で記録しました。');
+    renderLog();
+  });
+});
+$('#rating-skip').addEventListener('click', () => {
+  pendingRating = null;
+  $('#rating').hidden = true;
+  showMsg('決定を記録しました（満足度は未回答）。');
+});
+$('#abandon').addEventListener('click', () => {
+  if (state.session && hasActivity(state.session)) endSession('abandoned');
+  else state.session = null;
+  pendingRating = null;
+  $('#rating').hidden = true;
+  releaseAllKeys();
+  state.params = { ...state.preset.params };
+  reanchor();
+  Engine.update(state.params, true);
+  updateParamValues();
+  drawPlane();
+  startSession();
+  showMsg('やり直しとして記録し、初期音に戻しました。');
+});
+document.querySelectorAll('.mode').forEach((b) => {
+  b.addEventListener('click', () => {
+    if (state.axisMode === b.dataset.mode) return;
+    state.axisMode = b.dataset.mode;
+    reanchor();
+    noteGroupVisit();
+    renderModes();
+    renderGroups();
+    renderParamList();
+    renderAxes();
+    drawPlane();
+  });
+});
+$('#copy-log').addEventListener('click', () => {
+  const json = JSON.stringify({ sessions: state.sessions, operations: state.log }, null, 2);
+  const ta = $('#log-json');
+  const btn = $('#copy-log');
+  const fallback = () => {
+    ta.value = json;
+    ta.hidden = false;
+    ta.focus();
+    ta.select();
+    btn.textContent = '選択したのでコピーしてください';
+  };
+  try {
+    navigator.clipboard.writeText(json).then(() => {
+      btn.textContent = 'コピーしました';
+      setTimeout(() => { btn.textContent = 'JSONをコピー'; }, 1600);
+    }).catch(fallback);
+  } catch (err) { fallback(); }
+});
+
+// オシロスコープとステップ表示
+const scopeEl = $('#scope');
+let scopeBuf = null;
+function frame() {
+  requestAnimationFrame(frame);
+  if (!Engine.analyser) return;
+  const now = Engine.ctx.currentTime;
+  const q = Seq.queue;
+  while (q.length > 1 && q[1].t <= now) q.shift();
+  if (state.playing && q.length && q[0].t <= now) renderSteps(q[0].s);
+
+  const rect = scopeEl.getBoundingClientRect();
+  if (!rect.width) return;
+  const dpr = window.devicePixelRatio || 1;
+  const W = Math.round(rect.width * dpr);
+  const H = Math.round(rect.height * dpr);
+  if (scopeEl.width !== W || scopeEl.height !== H) { scopeEl.width = W; scopeEl.height = H; }
+  const c = scopeEl.getContext('2d');
+  c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const col = colors();
+  c.fillStyle = col.bg;
+  c.fillRect(0, 0, rect.width, rect.height);
+  if (!scopeBuf) scopeBuf = new Uint8Array(Engine.analyser.fftSize);
+  Engine.analyser.getByteTimeDomainData(scopeBuf);
+  c.strokeStyle = col.accent;
+  c.lineWidth = 1.5;
+  c.beginPath();
+  for (let i = 0; i < scopeBuf.length; i++) {
+    const x = (i / (scopeBuf.length - 1)) * rect.width;
+    const y = (scopeBuf[i] / 255) * rect.height;
+    if (i === 0) c.moveTo(x, y); else c.lineTo(x, y);
+  }
+  c.stroke();
+}
+function drawIdleScope() {
+  const rect = scopeEl.getBoundingClientRect();
+  if (!rect.width) return;
+  const dpr = window.devicePixelRatio || 1;
+  scopeEl.width = Math.round(rect.width * dpr);
+  scopeEl.height = Math.round(rect.height * dpr);
+  const c = scopeEl.getContext('2d');
+  c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const col = colors();
+  c.fillStyle = col.bg;
+  c.fillRect(0, 0, rect.width, rect.height);
+  c.strokeStyle = col.axis;
+  c.beginPath(); c.moveTo(0, rect.height / 2 + 0.5); c.lineTo(rect.width, rect.height / 2 + 0.5); c.stroke();
+}
+
+// 画面サイズやテーマが変わったら描き直す
+new ResizeObserver(() => { drawPlane(); if (!Engine.analyser) drawIdleScope(); }).observe(planeEl);
+const mq = window.matchMedia('(prefers-color-scheme: dark)');
+const redraw = () => { drawPlane(); if (!Engine.analyser) drawIdleScope(); };
+if (mq.addEventListener) mq.addEventListener('change', redraw);
+new MutationObserver(redraw).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+// --- 鍵盤のイベント ---
+const kbdEl = $('#kbd');
+const offAt = (x, y) => {
+  const el = document.elementFromPoint(x, y);
+  const k = el && el.closest ? el.closest('#kbd [data-off]') : null;
+  return k ? Number(k.dataset.off) : null;
+};
+kbdEl.addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  const off = offAt(e.clientX, e.clientY);
+  if (off === null) return;
+  kbdEl.setPointerCapture(e.pointerId);
+  noteDown('p' + e.pointerId, off);
+});
+kbdEl.addEventListener('pointermove', (e) => {
+  const src = 'p' + e.pointerId;
+  const cur = sounding.get(src);
+  if (!cur) return;
+  const off = offAt(e.clientX, e.clientY);
+  if (off === null || off === cur.off) return;
+  noteUp(src);
+  noteDown(src, off); // なぞるとグリッサンド
+});
+['pointerup', 'pointercancel', 'lostpointercapture'].forEach((ev) => {
+  kbdEl.addEventListener(ev, (e) => noteUp('p' + e.pointerId));
+});
+window.addEventListener('keydown', (e) => {
+  const tag = e.target && e.target.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+  if (e.isComposing || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.code === 'KeyZ') { if (!e.repeat) setOctave(octave - 1); e.preventDefault(); return; }
+  if (e.code === 'KeyX') { if (!e.repeat) setOctave(octave + 1); e.preventDefault(); return; }
+  const off = PC_KEYS.indexOf(e.code);
+  if (off < 0) return;
+  e.preventDefault();
+  if (!e.repeat) noteDown('k' + e.code, off);
+});
+window.addEventListener('keyup', (e) => noteUp('k' + e.code));
+window.addEventListener('blur', releaseAllKeys);
+$('#oct-down').addEventListener('click', () => setOctave(octave - 1));
+$('#oct-up').addEventListener('click', () => setOctave(octave + 1));
+
+// 初期表示：入力例で1件選んだ状態から始める
+renderExamples();
+renderPresetSelect();
+renderModes();
+renderGroups();
+$('#prompt').value = EXAMPLES[0];
+runSearch(EXAMPLES[0]);
+setOctave(CATS[state.preset.category].octave);
+buildSteps();
+renderTransport();
+renderLog();
+drawIdleScope();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawPlane);
+})();
+</script>
