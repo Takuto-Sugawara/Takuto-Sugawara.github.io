@@ -1,30 +1,28 @@
 body {
   background-color: #ffffff;
   color: #000000;
-  font-family: "MS Pゴシック", "MS PGothic", Osaka, sans-serif;
+  font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", Meiryo, "MS PGothic", sans-serif;
   font-size: 16px;
   margin: 0;
   padding: 0;
-  line-height: 1.4;
-  position: relative;
+  line-height: 1.6;
 }
 
-/* 背景テキストはJavaScriptで生成 */
-
+/* 本家のフレーム風レイアウト：左にメニュー、右に本文 */
 main {
-  display: table;
-  width: 100%;
-  border-collapse: collapse;
-  position: relative;
-  z-index: 1;
+  display: flex;
+  min-height: 100vh;
+  border-top: 1px solid #808080;
+  border-bottom: 1px solid #808080;
+  box-sizing: border-box;
 }
 
 .sidebar {
-  display: table-cell;
-  width: 180px;
-  vertical-align: top;
-  padding: 10px;
-  background-color: transparent;
+  flex: 0 0 220px;
+  background-color: #eeeeff;
+  border-right: 8px ridge #d4d0c8;
+  padding: 50px 0 0 24px;
+  box-sizing: border-box;
 }
 
 .sidebar ul {
@@ -34,57 +32,78 @@ main {
 }
 
 .sidebar li {
-  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+/* 色付きの丸印（色は各liの --dot で指定） */
+.sidebar li::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: var(--dot, #0000ff);
+  margin-right: 8px;
 }
 
 .sidebar a {
-  font-size: 14px;
+  font-size: 18px;
 }
 
+/* 背景に「Takuto Sugawara」を薄い緑の筆記体で敷き詰める */
 .main-contents {
-  display: table-cell;
-  vertical-align: top;
-  padding: 10px;
-  background-color: transparent;
+  flex: 1;
+  min-width: 0;
+  padding: 0 8px 20px;
+  background-color: #ffffff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='620' height='150'%3E%3Ctext x='10' y='90' font-family='Times New Roman, Times, serif' font-style='italic' font-size='76' fill='%23c4ead0'%3ETakuto Sugawara%3C/text%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-position: 30px 0;
 }
 
 .main-contents-top {
-  margin-bottom: 20px;
+  text-align: center;
+  padding: 30px 0 10px;
 }
 
 h1 {
-  font-size: 24px;
+  font-size: 32px;
   font-weight: bold;
-  margin: 0 0 20px 0;
+  margin: 0;
   padding: 0;
-  color: #000000;
 }
 
-h2 {
-  font-size: 18px;
-  font-weight: bold;
-  margin: 20px 0 10px 0;
-  padding: 0;
-  color: #000000;
+.columns {
+  display: flex;
+  gap: 16px;
 }
 
-#profile-image {
-  margin: 20px 0;
+.column-left {
+  flex: 0 1 525px;
+  max-width: 525px;
+  padding-top: 60px;
+}
+
+.column-right {
+  flex: 1;
+  min-width: 0;
 }
 
 #profile-image img {
-  max-width: 300px;
+  display: block;
+  width: 100%;
   height: auto;
   border: none;
 }
 
 .profile-summary {
-  margin: 20px 0;
-  line-height: 1.6;
+  margin: 30px 0 0 32px;
 }
 
 .profile-summary p {
-  margin: 5px 0;
+  margin: 0 0 6px;
   padding: 0;
 }
 
@@ -96,27 +115,42 @@ h2 {
 }
 
 .latest-information {
-  margin: 30px 0;
-}
-
-.latest-information p {
-  margin: 10px 0;
-}
-
-.rights {
-  margin: 30px 0;
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-.rights b {
   font-weight: bold;
 }
 
-.footer {
+.latest-information .latest-title {
+  text-align: center;
+  font-weight: normal;
+  font-size: 18px;
+  margin: 0 0 30px;
+}
+
+.latest-information hr {
+  border: none;
+  border-top: 1px solid #aaaaaa;
   margin: 20px 0;
-  padding-top: 20px;
-  border-top: 1px solid #000000;
+}
+
+.latest-information .category {
+  margin: 0 0 10px;
+}
+
+.latest-information .item {
+  margin: 0 0 30px 110px;
+}
+
+.latest-information .item p {
+  margin: 0;
+}
+
+.new {
+  color: #ff0000;
+}
+
+.rights {
+  margin: 40px 0;
+  font-weight: bold;
+  line-height: 1.6;
 }
 
 a {
@@ -139,24 +173,43 @@ a:hover {
   }
 
   .sidebar {
-    display: block;
-    width: 100%;
-    border-bottom: 1px solid #000000;
-    padding: 10px;
+    border-right: none;
+    border-bottom: 8px ridge #d4d0c8;
+    padding: 16px;
   }
 
   .sidebar ul {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 12px 20px;
+  }
+
+  .sidebar li {
+    margin-bottom: 0;
   }
 
   .main-contents {
-    display: block;
-    width: 100%;
+    padding: 0 16px 20px;
   }
 
-  #profile-image img {
+  .columns {
+    display: block;
+  }
+
+  .column-left {
     max-width: 100%;
+    padding-top: 20px;
+  }
+
+  .profile-summary {
+    margin-left: 0;
+  }
+
+  .latest-information {
+    margin-top: 30px;
+  }
+
+  .latest-information .item {
+    margin-left: 40px;
   }
 }

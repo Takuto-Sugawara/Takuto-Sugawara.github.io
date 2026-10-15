@@ -5,51 +5,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>菅原拓人のホームページ</title>
     <link rel="stylesheet" href="./style.css">
-    <script src="./background.js" defer></script>
     </head>
   <body>
     <main>
       <div class="sidebar">
         <ul>
-          <li><a href="./">トップ</a></li>
-          <li><a href="./profile.html">プロフィール</a></li>
-          <li><a href="./skills.html">スキル</a></li>
-          <li><a href="./contact.html">お問い合わせ</a></li>
+          <li style="--dot: #ffcccc;"><a href="./">トップ</a></li>
+          <li style="--dot: #00ff00;"><a href="./profile.html">プロフィール</a></li>
+          <li style="--dot: #33ffff;"><a href="./skills.html">スキル</a></li>
+          <li style="--dot: #0099ff;"><a href="./synth_demo.html">シンセデモ</a></li>
+          <li style="--dot: #0000ff;"><a href="./scraping_test.html">スクレイピングテスト</a></li>
+          <li style="--dot: #ff0000;"><a href="./contact.html">お問い合わせ</a></li>
         </ul>
       </div>
       <div class="main-contents">
         <div class="main-contents-top">
-          <h1>菅原拓人のホームページ</h1>  
+          <h1>菅原拓人のホームページ</h1>
         </div>
-        <div id="profile-image">
-            <img src="./images/profile.jpg" alt="プロフィール画像">
-        </div>
-        <div class="profile-summary">
-          <p>菅原 拓人（すがわら たくと）</p>
-          <p>生年月日 xxxx年xx月xx日</p>
-          <p>血液型 A型（おそらく）</p><br>
-          <p>mail:</p>
-          <div class="email-address-image">
-            <img src="./images/email-address.jpg" alt="メールアドレス">
+        <div class="columns">
+          <div class="column-left">
+            <div id="profile-image">
+              <img src="./images/profile.svg" width="525" height="580" alt="仮プロフィール画像（猫）">
+            </div>
+            <div class="profile-summary">
+              <p>菅原 拓人（すがわら たくと）</p>
+              <p>Takuto Sugawara</p>
+              <p>生年月日 xxxx年xx月xx日</p>
+              <p>血液型 A型（おそらく）</p>
+              <p>所属 明治大学大学院先端数理科学研究科ネットワークデザイン専攻</p>
+              <p>mail:</p>
+              <div class="email-address-image">
+                <img src="./images/email-address.jpg" alt="メールアドレス">
+              </div>
+            </div>
           </div>
-          <br>
-          <p>所属:</p>
-          <p>明治大学大学院先端数理科学研究科ネットワークデザイン専攻</p>     
-        </div>  
-        <div class="latest-information">
-          <h2>最新情報</h2>
-          <p>最新情報はありません。</p>
-        </div>
-        <div class="rights">
-          <b>
-          当サイトの内容、テキスト、画像等の無断転載・無断使用を固く禁じます。<br>
-          また、まとめサイト等への引用を厳禁致します。<br>
-          お問い合わせはメールでご連絡をお願い致します。<br>
-          </b>
-        </div>
-        <div class="footer">
-          <a href="./scraping_test.html"><b>スクレイピングテスト用</b></a>
-          <a href="./synth_demo.html"><b>シンセデモ</b></a>
+          <div class="column-right">
+            <div class="latest-information">
+              <p class="latest-title">★★★　最新情報　★★★</p>
+              <hr>
+              <p class="category">・お知らせ</p>
+              <div class="item">
+                <p>最新情報はありません。</p>
+              </div>
+              <hr>
+              <p class="category">・作品</p>
+              <div class="item">
+                <p>「<a href="./synth_demo.html">シンセデモ</a>」<span class="new">New!</span></p>
+              </div>
+              <hr>
+            </div>
+            <div class="rights">
+              当サイトの内容、テキスト、画像等の無断転載・無断使用を固く禁じます。<br>
+              また、まとめサイト等への引用を厳禁致します。<br>
+              お問い合わせはメールでご連絡をお願い致します。
+            </div>
+          </div>
         </div>
       </div>
     </main>

@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 525 580" width="525" height="580">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="75%">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#d8d8d8"/>
+    </radialGradient>
+  </defs>
+
+  <!-- 背景 -->
+  <rect width="525" height="580" fill="url(#bg)"/>
+
+  <!-- ジャケット -->
+  <path d="M30 580 C40 470 110 420 200 405 L262 470 L325 405 C415 420 485 470 495 580 Z" fill="#2b3040"/>
+  <!-- シャツ -->
+  <path d="M200 405 L262 470 L325 405 L300 580 L225 580 Z" fill="#c9d1e3"/>
+  <path d="M262 470 L262 580" stroke="#a9b3c9" stroke-width="2"/>
+  <!-- 襟 -->
+  <path d="M200 405 L262 470 L228 492 L190 420 Z" fill="#e3e8f2"/>
+  <path d="M325 405 L262 470 L297 492 L335 420 Z" fill="#e3e8f2"/>
+  <!-- ラペル -->
+  <path d="M190 420 L228 492 L245 580 L170 580 L150 440 Z" fill="#232836"/>
+  <path d="M335 420 L297 492 L280 580 L355 580 L375 440 Z" fill="#232836"/>
+
+  <!-- 耳 -->
+  <path d="M135 215 L160 70 L250 160 Z" fill="#e39a52"/>
+  <path d="M390 215 L365 70 L275 160 Z" fill="#e39a52"/>
+  <path d="M158 190 L170 105 L228 162 Z" fill="#f2b3a3"/>
+  <path d="M367 190 L355 105 L297 162 Z" fill="#f2b3a3"/>
+
+  <!-- 顔 -->
+  <ellipse cx="262.5" cy="275" rx="155" ry="135" fill="#e9a55e"/>
+  <!-- 額の縞 -->
+  <path d="M262.5 148 L262.5 200" stroke="#c4762f" stroke-width="10" stroke-linecap="round"/>
+  <path d="M230 152 L238 195" stroke="#c4762f" stroke-width="9" stroke-linecap="round"/>
+  <path d="M295 152 L287 195" stroke="#c4762f" stroke-width="9" stroke-linecap="round"/>
+  <!-- 頬の縞 -->
+  <path d="M110 270 L150 278 M112 300 L150 300" stroke="#c4762f" stroke-width="8" stroke-linecap="round"/>
+  <path d="M415 270 L375 278 M413 300 L375 300" stroke="#c4762f" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- 目 -->
+  <ellipse cx="205" cy="262" rx="27" ry="31" fill="#a6cf55"/>
+  <ellipse cx="320" cy="262" rx="27" ry="31" fill="#a6cf55"/>
+  <ellipse cx="205" cy="264" rx="8" ry="24" fill="#1e1e1e"/>
+  <ellipse cx="320" cy="264" rx="8" ry="24" fill="#1e1e1e"/>
+  <circle cx="213" cy="250" r="6" fill="#ffffff"/>
+  <circle cx="328" cy="250" r="6" fill="#ffffff"/>
+  <!-- 渋い眉（ちょっと凛々しく） -->
+  <path d="M175 222 Q205 210 232 222" stroke="#b56a28" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <path d="M293 222 Q320 210 350 222" stroke="#b56a28" stroke-width="7" fill="none" stroke-linecap="round"/>
+
+  <!-- マズル -->
+  <ellipse cx="238" cy="335" rx="42" ry="32" fill="#fbefe2"/>
+  <ellipse cx="287" cy="335" rx="42" ry="32" fill="#fbefe2"/>
+  <ellipse cx="262.5" cy="370" rx="30" ry="16" fill="#fbefe2"/>
+  <!-- 鼻と口 -->
+  <path d="M248 313 L277 313 L262.5 330 Z" fill="#e58a8a"/>
+  <path d="M262.5 330 L262.5 342 M262.5 342 Q250 356 236 346 M262.5 342 Q275 356 289 346" stroke="#6b3b2a" stroke-width="4" fill="none" stroke-linecap="round"/>
+
+  <!-- ひげ -->
+  <g stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.9">
+    <path d="M200 335 L95 318 M200 345 L92 350 M202 355 L100 382"/>
+    <path d="M325 335 L430 318 M325 345 L433 350 M323 355 L425 382"/>
+  </g>
+</svg>
